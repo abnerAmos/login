@@ -1,0 +1,25 @@
+version: '3.9'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: mysql_container
+    restart: always
+    environment:
+       MYSQL_ROOT_PASSWORD: root
+       MYSQL_DATABASE: db_login
+       MYSQL_USER: root
+       MYSQL_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_login:/var/lib/mysql
+    networks:
+      - login
+
+volumes:
+  db_login:
+
+networks:
+  login:
+    driver: bridge
