@@ -12,6 +12,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Data
+@Entity
+@Table(name = "tb_users")
 public class User implements UserDetails {
 
     @Id
@@ -32,6 +34,7 @@ public class User implements UserDetails {
 
     private LocalDateTime lastAlterPass;
 
+    @Enumerated(EnumType.STRING)
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "role")
