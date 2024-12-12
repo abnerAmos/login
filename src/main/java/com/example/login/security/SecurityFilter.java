@@ -1,5 +1,6 @@
 package com.example.login.security;
 
+import com.example.login.exception.ForbiddenException;
 import com.example.login.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -37,13 +38,10 @@ public class SecurityFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         var token = tokenRecover(request);
-
-        if (token != null) {
-            var subject = tokenService.getSubject(token);   // Valida o token e extrai o subject (e-mail do usuário)
-            var user =  userRepository.findByEmail(subject);
-            var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities()); // Cria uma instância de autenticação para o usuário
-            SecurityContextHolder.getContext().setAuthentication(authentication); // Configura o contexto de segurança do Spring com os detalhes do usuário autenticado
-        }
+        var subject = tokenService.getSubject(token);   // Valida o token e extrai o subject (e-mail do usuário)
+        var user =  userRepository.findByEmail(subject);
+        var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities()); // Cria uma instância de autenticação para o usuário
+        SecurityContextHolder.getContext().setAuthentication(authentication); // Configura o contexto de segurança do Spring com os detalhes do usuário autenticado
 
         filterChain.doFilter(request, response); // Passa a requisição para o próximo filtro na cadeia
     }
@@ -56,10 +54,11 @@ public class SecurityFilter extends OncePerRequestFilter {
      */
     private String tokenRecover(HttpServletRequest request) {
         String authorizationHeader = request.getHeader("Authorization");
-        if (authorizationHeader != null) {
+        if (authorizationHeader == null || authorizationHeader.isEmpty()) {
+            throw new ForbiddenException("Token não encontrado");
+        } else {
             return authorizationHeader.replace("Bearer ", "");
         }
 
-        return null;
     }
 }
