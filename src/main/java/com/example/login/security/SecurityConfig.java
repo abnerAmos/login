@@ -44,7 +44,7 @@ public class SecurityConfig {
         return httpSecurity.csrf(AbstractHttpConfigurer::disable)                                       // Desabilita CSRF, útil para APIs REST (que geralmente não usam sessões).
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))     // Configura sessão como Stateless.
                 .authorizeHttpRequests(request -> {                                                     // Define as regras de autorização para rotas específicas.
-                    request.requestMatchers(HttpMethod.POST, "/auth/login", "/auth/register").permitAll();    // Permitir login e registro sem autenticação
+                    request.requestMatchers(HttpMethod.POST, "/auth/login", "/register").permitAll();    // Permitir login e registro sem autenticação
                     request.requestMatchers("/admin/**").hasRole("ADMIN");                            // Somente ADMIN pode acessar /admin
                     request.requestMatchers("/user/**").hasRole("USER");                              // Somente USER pode acessar /user
                     request.anyRequest().authenticated();                                               // Requer autenticação para outras rotas
