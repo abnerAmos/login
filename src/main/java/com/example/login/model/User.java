@@ -2,6 +2,7 @@ package com.example.login.model;
 
 import com.example.login.enums.Role;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.security.core.GrantedAuthority;
@@ -26,6 +27,7 @@ public class User extends BaseEntity implements UserDetails {
 
     private String password;
 
+    @NotBlank(message = "Email não pode ser nulo ou vazio")
     private String email;
 
     private LocalDateTime lastPassword;
@@ -75,5 +77,10 @@ public class User extends BaseEntity implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+        this.username = email;
     }
 }
