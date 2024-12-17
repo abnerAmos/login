@@ -3,8 +3,7 @@ package com.example.login.model;
 import com.example.login.enums.Role;
 import jakarta.persistence.*;
 import lombok.Data;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
+import lombok.EqualsAndHashCode;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -16,7 +15,8 @@ import java.util.Set;
 @Data
 @Entity
 @Table(name = "tb_users")
-public class User implements UserDetails {
+@EqualsAndHashCode(callSuper = true)
+public class User extends BaseEntity implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,13 +27,6 @@ public class User implements UserDetails {
     private String password;
 
     private String email;
-
-    @CreatedDate
-    @Column(updatable = false)
-    private LocalDateTime createAt;
-
-    @LastModifiedDate
-    private LocalDateTime updateAt;
 
     private LocalDateTime lastPassword;
 
