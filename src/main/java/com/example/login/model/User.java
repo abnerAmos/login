@@ -1,6 +1,7 @@
 package com.example.login.model;
 
 import com.example.login.enums.Role;
+import com.example.login.validation.ValidPassword;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
@@ -25,6 +26,7 @@ public class User extends BaseEntity implements UserDetails {
 
     private String username;
 
+    @ValidPassword
     private String password;
 
     @NotBlank(message = "Email não pode ser nulo ou vazio")

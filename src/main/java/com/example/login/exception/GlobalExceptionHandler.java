@@ -2,11 +2,15 @@ package com.example.login.exception;
 
 import com.example.login.dto.response.HttpErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import static org.springframework.http.HttpStatus.*;
 
 /**
  * Classe centralizada para tratar exceções da aplicação.
@@ -25,14 +29,8 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<HttpErrorResponse> handleGenericException(Exception ex, HttpServletRequest request) {
-        var internalError = HttpStatus.INTERNAL_SERVER_ERROR;
-        var error = new HttpErrorResponse(
-                internalError.getReasonPhrase(),
-                ex.getMessage(),
-                request.getRequestURI()
-        );
-
-        return ResponseEntity.status(internalError).body(error);
+        var error = getHttpErrorResponse(request, INTERNAL_SERVER_ERROR, ex.getMessage());
+        return ResponseEntity.internalServerError().body(error);
     }
 
     /**
@@ -44,14 +42,8 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<HttpErrorResponse> handleAuthenticationException(AuthenticationException ex, HttpServletRequest request) {
-        var unauthorizedException = HttpStatus.UNAUTHORIZED;
-        var error = new HttpErrorResponse(
-                unauthorizedException.getReasonPhrase(),
-                "Erro de autenticação: " + ex.getMessage(),
-                request.getRequestURI()
-        );
-
-        return ResponseEntity.status(unauthorizedException).body(error);
+        var error = getHttpErrorResponse(request, UNAUTHORIZED, "Erro de autenticação: " + ex.getMessage());
+        return ResponseEntity.status(UNAUTHORIZED).body(error);
     }
 
     /**
@@ -63,14 +55,8 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<HttpErrorResponse> handleBadRequestException(BadRequestException ex, HttpServletRequest request) {
-        var badRequestException = HttpStatus.BAD_REQUEST;
-        var error = new HttpErrorResponse(
-                badRequestException.getReasonPhrase(),
-                ex.getMessage(),
-                request.getRequestURI()
-        );
-
-        return ResponseEntity.status(badRequestException).body(error);
+        var error = getHttpErrorResponse(request, BAD_REQUEST, ex.getMessage());
+        return ResponseEntity.badRequest().body(error);
     }
 
     /**
@@ -82,13 +68,27 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(ForbiddenException.class)
     public ResponseEntity<HttpErrorResponse> handleBadRequestException(ForbiddenException ex, HttpServletRequest request) {
-        var forbiddenException = HttpStatus.FORBIDDEN;
-        var error = new HttpErrorResponse(
-                forbiddenException.getReasonPhrase(),
-                ex.getMessage(),
+        var error = getHttpErrorResponse(request, FORBIDDEN, ex.getMessage());
+        return ResponseEntity.status(FORBIDDEN).body(error);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<HttpErrorResponse> handleConstraintViolationException(ConstraintViolationException ex, HttpServletRequest request) {
+        String errorMessage = ex.getConstraintViolations().stream()
+                .map(ConstraintViolation::getMessage)
+                .findFirst()
+                .orElse("Erro de validação");
+
+        var error = getHttpErrorResponse(request, BAD_REQUEST, errorMessage);
+        return ResponseEntity.badRequest().body(error);
+    }
+
+    private HttpErrorResponse getHttpErrorResponse(HttpServletRequest request, HttpStatus badRequest, String errorMessage) {
+        return new HttpErrorResponse(
+                badRequest.getReasonPhrase(),
+                errorMessage,
                 request.getRequestURI()
         );
-
-        return ResponseEntity.status(forbiddenException).body(error);
     }
+
 }
