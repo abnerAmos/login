@@ -7,6 +7,8 @@ import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -72,6 +74,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(FORBIDDEN).body(error);
     }
 
+    /**
+     * Trata exceções de violação de restrições de validação.
+     * Este método é responsável por capturar exceções de validação em campos específicos das entidades.
+     *
+     * @param ex A exceção de violação de restrição (ConstraintViolationException) capturada.
+     * @param request A requisição HTTP que causou a exceção.
+     * @return Uma resposta HTTP com status 400 e detalhes da exceção.
+     * A resposta será formatada para informar a violação das regras de validação.
+     */
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<HttpErrorResponse> handleConstraintViolationException(ConstraintViolationException ex, HttpServletRequest request) {
         String errorMessage = ex.getConstraintViolations().stream()
@@ -83,6 +94,38 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(error);
     }
 
+    /**
+     * Trata exceções de validação de argumentos dos métodos.
+     * Este método é utilizado para capturar exceções de campos de entrada inválidos,
+     * como em requisições JSON que não atendem aos critérios de validação definidos.
+     *
+     * @param ex A exceção de argumento não válido (MethodArgumentNotValidException) capturada.
+     * @param request A requisição HTTP que causou a exceção.
+     * @return Uma resposta HTTP com status 400 e detalhes da exceção.
+     * A resposta será formatada para informar quais campos falharam na validação.
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<HttpErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex, HttpServletRequest request) {
+        // Extrair todas as mensagens de erro
+        String errorMessage = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(FieldError::getDefaultMessage)
+                .findFirst()
+                .orElse("Erro de validação");
+
+        var error = getHttpErrorResponse(request, BAD_REQUEST, errorMessage);
+        return ResponseEntity.badRequest().body(error);
+    }
+
+    /**
+     * Método auxiliar para criar a estrutura da resposta de erro.
+     *
+     * @param request A requisição HTTP original.
+     * @param badRequest O status HTTP da resposta de erro.
+     * @param errorMessage A mensagem detalhada do erro.
+     * @return Um objeto HttpErrorResponse com as informações formatadas.
+     */
     private HttpErrorResponse getHttpErrorResponse(HttpServletRequest request, HttpStatus badRequest, String errorMessage) {
         return new HttpErrorResponse(
                 badRequest.getReasonPhrase(),

@@ -1,6 +1,5 @@
 package com.example.login.service.impl;
 
-import com.example.login.dto.request.RegisterDTO;
 import com.example.login.exception.BadRequestException;
 import com.example.login.model.User;
 import com.example.login.repository.UserRepository;
@@ -18,15 +17,15 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passEncoder;
 
     @Override
-    public void registerUser(RegisterDTO registerDTO) {
-        var existUser = userRepository.existsByEmail(registerDTO.email());
+    public void registerUser(User user) {
+        var existUser = userRepository.existsByEmail(user.getEmail());
         if (existUser) {
             throw new BadRequestException("Usuário já existe!");
         }
 
-        User user = new User();
-        user.setEmail(registerDTO.email());
-        user.setPassword(passEncoder.encode(registerDTO.password()));
+        User newUser = new User();
+        newUser.setEmail(user.getEmail());
+        newUser.setPassword(passEncoder.encode(user.getPassword()));
 
         userRepository.save(user);
     }

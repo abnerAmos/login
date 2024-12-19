@@ -14,30 +14,26 @@ public class PasswordValidator implements ConstraintValidator<ValidPassword, Str
     @Override
     public boolean isValid(String password, ConstraintValidatorContext context) {
         if (password == null) {
-            context.disableDefaultConstraintViolation();
-            context.buildConstraintViolationWithTemplate("Senha não pode ser nula")
-                    .addConstraintViolation();
-
-            return false;
+            return validator(context, "Senha não pode ser nula");
         }
 
         if (password.matches(SEQUENCES_PATTERN)) {
-            context.disableDefaultConstraintViolation();
-            context.buildConstraintViolationWithTemplate("A senha não deve conter sequenciais")
-                    .addConstraintViolation();
-
-            return false;
+            return validator(context, "A senha não deve conter sequenciais");
         }
 
         if (!password.matches(PASSWORD_PATTERN)) {
-            context.disableDefaultConstraintViolation();
-            context.buildConstraintViolationWithTemplate("A senha deve conter ao menos uma letra maiúscula, uma letra minúscula, um número, um caractere especial, e no mínimo 8 caracteres")
-                    .addConstraintViolation();
-
-            return false;
+            return validator(context, "A senha deve conter ao menos uma letra maiúscula, uma letra minúscula, um número, um caractere especial, e no mínimo 8 caracteres");
         }
 
         return true;
+    }
+
+    private boolean validator(ConstraintValidatorContext context, String messageError) {
+        context.disableDefaultConstraintViolation();
+        context.buildConstraintViolationWithTemplate(messageError)
+                .addConstraintViolation();
+
+        return false;
     }
 
 }

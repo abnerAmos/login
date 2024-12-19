@@ -17,14 +17,14 @@ public abstract class BaseEntity {
 
     @CreationTimestamp
     @Column(updatable = false)
-    private LocalDateTime createAt;
+    private LocalDateTime createdAt;
 
-    private LocalDateTime updateAt;
+    private LocalDateTime updatedAt;
 
     @PreUpdate
     public void prePersist() {
-        if (this.createAt != null) {
-            this.updateAt = LocalDateTime.now(); // Definir o updateAt somente durante a atualização
+        if (this.createdAt != null) {
+            this.updatedAt = LocalDateTime.now(); // Definir o updatedAt somente durante a atualização
         }
     }
 }

@@ -4,6 +4,7 @@ import com.example.login.enums.Role;
 import com.example.login.validation.ValidPassword;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.security.core.GrantedAuthority;
@@ -30,6 +31,8 @@ public class User extends BaseEntity implements UserDetails {
     private String password;
 
     @NotBlank(message = "Email não pode ser nulo ou vazio")
+    @Pattern(regexp = "^[\\w.]+@\\w+\\.\\w+(\\.\\w+)?$",
+            message = "O formato do campo 'email' é inválido.")
     private String email;
 
     private LocalDateTime lastPassword;
@@ -37,8 +40,8 @@ public class User extends BaseEntity implements UserDetails {
     private LocalDateTime lastAlterPass;
 
     @Enumerated(EnumType.STRING)
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
+    @ElementCollection(fetch = FetchType.EAGER) // Gera uma tabela Embeddable baseada em uma coleção.
+    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id")) // Configura e personaliza a tabela em conjunto com ElementCollection.
     @Column(name = "role")
     private Set<Role> roles = new HashSet<>();
 
