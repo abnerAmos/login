@@ -5,4 +5,6 @@ import com.example.login.model.User;
 public interface UserService {
 
     void registerUser(User user);
+
+    User findUser(Long id);
 }

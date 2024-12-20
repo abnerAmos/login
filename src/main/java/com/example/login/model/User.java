@@ -39,6 +39,8 @@ public class User extends BaseEntity implements UserDetails {
 
     private LocalDateTime lastAlterPass;
 
+    private Boolean enabled = true;
+
     @Enumerated(EnumType.STRING)
     @ElementCollection(fetch = FetchType.EAGER) // Gera uma tabela Embeddable baseada em uma coleção.
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id")) // Configura e personaliza a tabela em conjunto com ElementCollection.
@@ -81,7 +83,7 @@ public class User extends BaseEntity implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return this.enabled;
     }
 
     public void setEmail(String email) {

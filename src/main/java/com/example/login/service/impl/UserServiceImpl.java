@@ -29,4 +29,10 @@ public class UserServiceImpl implements UserService {
 
         userRepository.save(user);
     }
+
+    @Override
+    public User findUser(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new BadRequestException("Usuário já existe!"));
+    }
 }
