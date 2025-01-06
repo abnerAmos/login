@@ -1,13 +1,14 @@
 package com.example.login.security;
 
-import com.example.login.model.User;
 import com.example.login.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.security.authentication.AuthenticationManager;
+
+import java.util.Optional;
 
 /**
  * Serviço responsável pela autenticação de usuários na aplicação.
@@ -34,11 +35,7 @@ public class AuthenticationService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(username);
-
-        if (user == null)
-            throw new UsernameNotFoundException("Usuário não encontrado com o e-mail: " + username);
-        else
-            return user;
+        return Optional.of(userRepository.findByEmail(username))
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado com o e-mail: " + username));
     }
 }

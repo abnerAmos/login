@@ -1,5 +1,6 @@
 package com.example.login.controller;
 
+import com.example.login.dto.request.NewUserRequest;
 import com.example.login.dto.response.HttpSucessResponse;
 import com.example.login.model.User;
 import com.example.login.service.UserService;
@@ -24,10 +25,10 @@ public class UserController {
      *         Caso ocorra alguma falha na validação ou processamento, uma exceção será lançada.
      */
     @PostMapping("/register")
-    public ResponseEntity<HttpSucessResponse> register(@RequestBody @Valid User user) {
-        var httpResponse = new HttpSucessResponse(HttpStatus.CREATED, "Cadastro efetuado com sucesso");
+    public ResponseEntity<HttpSucessResponse> register(@RequestBody @Valid NewUserRequest user) {
         userService.registerUser(user);
 
+        var httpResponse = new HttpSucessResponse(HttpStatus.CREATED, "Cadastro efetuado com sucesso");
         return ResponseEntity.status(HttpStatus.CREATED).body(httpResponse);
     }
 
@@ -38,7 +39,7 @@ public class UserController {
      * @return Uma resposta HTTP contendo o status 200 (OK) e os dados do usuário.
      *         Caso o usuário não seja encontrado, uma exceção será lançada.
      */
-    @GetMapping()
+    @GetMapping("/{id}")
     public ResponseEntity<User> findUser(@PathVariable Long id) {
         var user = userService.findUser(id);
 
