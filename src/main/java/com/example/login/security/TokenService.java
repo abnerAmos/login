@@ -66,8 +66,7 @@ public class TokenService {
                     .verify(token)      // Verifica a integridade e validade do token
                     .getSubject();      // Retorna o subject do token
         } catch (JWTVerificationException e){
-            throw new AuthenticationException("Token inválido ou expirado") {
-            };
+            throw new AuthenticationException("Token inválido ou expirado") {};
         }
     }
 
