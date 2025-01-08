@@ -38,7 +38,11 @@ public class User extends BaseEntity implements UserDetails {
 
     private LocalDateTime lastAlterPass;
 
-    private Boolean enabled = true;
+    private Boolean enabled = false;
+
+    private String validationCode;
+
+    private LocalDateTime validationCodeExpiry;
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude

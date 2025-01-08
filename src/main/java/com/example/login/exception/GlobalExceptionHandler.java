@@ -36,6 +36,19 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Trata exceções de erro interno.
+     *
+     * @param ex A exceção capturada.
+     * @param request A requisição HTTP que causou a exceção.
+     * @return Uma resposta HTTP com status 500 e detalhes da exceção.
+     */
+    @ExceptionHandler(InternalServerErrorException.class)
+    public ResponseEntity<HttpErrorResponse> handleInternalServerErrorException(InternalServerErrorException ex, HttpServletRequest request) {
+        var error = getHttpErrorResponse(request, INTERNAL_SERVER_ERROR, ex.getMessage());
+        return ResponseEntity.internalServerError().body(error);
+    }
+
+    /**
      * Trata exceções de autenticação lançadas pelo Spring Security.
      *
      * @param ex A exceção de autenticação capturada.
