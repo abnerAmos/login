@@ -6,7 +6,7 @@ import com.example.login.model.User;
 import com.example.login.repository.UserRepository;
 import com.example.login.service.EmailService;
 import com.example.login.service.UserService;
-import com.example.login.util.CodeGenerator;
+import com.example.login.service.ValidationCodeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -23,6 +23,8 @@ public class UserServiceImpl implements UserService {
 
     private final EmailService emailService;
 
+    private final ValidationCodeService validationCodeService;
+
     @Override
     public void registerUser(NewUserRequest user) {
         var existUser = userRepository.existsByEmail(user.email());
@@ -30,14 +32,12 @@ public class UserServiceImpl implements UserService {
             throw new BadRequestException("Usuário já existe!");
         }
 
-        String validationCode = CodeGenerator.generateValidationCode();
+        String validationCode = validationCodeService.generateValidationCode(user.email());
 
         User newUser = new User();
         newUser.setEmail(user.email());
         newUser.setPassword(passEncoder.encode(user.password()));
         newUser.setLastPassword(LocalDateTime.now());
-        newUser.setValidationCode(validationCode.toLowerCase());
-        newUser.setValidationCodeExpiry(LocalDateTime.now().plusMinutes(10));
 
         userRepository.save(newUser);
 

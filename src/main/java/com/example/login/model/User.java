@@ -40,10 +40,6 @@ public class User extends BaseEntity implements UserDetails {
 
     private Boolean enabled = false;
 
-    private String validationCode;
-
-    private LocalDateTime validationCodeExpiry;
-
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @Enumerated(EnumType.STRING)
