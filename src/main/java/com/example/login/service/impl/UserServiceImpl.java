@@ -22,14 +22,18 @@ public class UserServiceImpl implements UserService {
 
     private final EmailService emailService;
 
+    /**
+     * Registra um novo usuário no sistema e envia um e-mail de validação.
+     *
+     * @param user Um objeto `NewUserRequest` contendo as informações do novo usuário, como e-mail e senha.
+     * @throws BadRequestException Se já existir um usuário com o mesmo e-mail cadastrado.
+     */
     @Override
     public void registerUser(NewUserRequest user) {
         var existUser = userRepository.existsByEmail(user.email());
         if (existUser) {
             throw new BadRequestException("Usuário já existe!");
         }
-
-        String validationCode = emailService.generateValidationCode(user.email());
 
         User newUser = new User();
         newUser.setEmail(user.email());
@@ -38,7 +42,7 @@ public class UserServiceImpl implements UserService {
 
         userRepository.save(newUser);
 
-        emailService.sendValidationEmail(user.email(), validationCode);
+        emailService.sendRegisterEmail(user.email());
     }
 
     @Override
