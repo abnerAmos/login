@@ -76,6 +76,12 @@ public class EmailServiceImpl implements EmailService {
      */
     @Override
     public void sendRefreshCode(String receiverEmail) {
+        var user = userRepository.findByEmail(receiverEmail);
+
+        if (Boolean.TRUE.equals(user.getEnabled())) {
+            throw new BadRequestException("Usuário já habilitado.");
+        }
+
         validationCodeCache.invalidateValidationCode(receiverEmail);
         sendValidationEmail(receiverEmail);
     }
