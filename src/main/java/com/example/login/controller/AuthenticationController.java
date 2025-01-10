@@ -33,11 +33,20 @@ public class AuthenticationController {
         return ResponseEntity.ok(new TokenResponse(token));
     }
 
-    @PostMapping("/validate-code")
+    @GetMapping("/validate-code")
     public ResponseEntity<HttpSucessResponse> validateCode(@RequestParam String email, @RequestParam String code) {
         emailService.validationCode(email, code);
 
         var httpResponse = new HttpSucessResponse(HttpStatus.OK, "Validação concluída com sucesso. Você já pode fazer login.");
+        return ResponseEntity.ok().body(httpResponse);
+    }
+
+    @GetMapping("/refresh-code")
+    public ResponseEntity<HttpSucessResponse> refreshCode(@RequestParam String email) {
+        String refreshCode = emailService.generateValidationCode(email);
+        emailService.sendValidationEmail(email, refreshCode);
+
+        var httpResponse = new HttpSucessResponse(HttpStatus.OK, "Novo código de validação enviado.");
         return ResponseEntity.ok().body(httpResponse);
     }
 

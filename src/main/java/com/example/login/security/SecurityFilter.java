@@ -31,6 +31,8 @@ public class SecurityFilter extends OncePerRequestFilter {
 
     private static final List<String> PUBLIC_ENDPOINTS = List.of(
             "/auth/login",
+            "/auth/validate-code",
+            "/auth/refresh-code",
             "/register"
     );
 
