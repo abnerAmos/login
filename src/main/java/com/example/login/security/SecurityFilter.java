@@ -16,6 +16,7 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Filtro de segurança responsável por interceptar requisições,
@@ -29,10 +30,13 @@ public class SecurityFilter extends OncePerRequestFilter {
     private final UserRepository userRepository;
     private final HandlerExceptionResolver handlerExceptionResolver;
 
-    private static final List<String> PUBLIC_ENDPOINTS = List.of(
-            "/auth/login",
+    public static final List<String> PUBLIC_ENDPOINTS_GET = List.of(
             "/auth/validate-code",
-            "/auth/refresh-code",
+            "/auth/refresh-code"
+    );
+
+    public static final List<String> PUBLIC_ENDPOINTS_POST = List.of(
+            "/auth/login",
             "/register"
     );
 
@@ -88,6 +92,12 @@ public class SecurityFilter extends OncePerRequestFilter {
      */
     private boolean isPublicEndpoint(HttpServletRequest request) {
         String path = request.getRequestURI();
-        return PUBLIC_ENDPOINTS.stream().anyMatch(publicPath -> publicPath.equalsIgnoreCase(path));
+
+        List<String> allPublicEndpoints = Stream.concat(
+                PUBLIC_ENDPOINTS_GET.stream(),
+                PUBLIC_ENDPOINTS_POST.stream()
+        ).toList();
+
+        return allPublicEndpoints.stream().anyMatch(publicPath -> publicPath.equalsIgnoreCase(path));
     }
 }
