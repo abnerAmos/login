@@ -9,6 +9,7 @@ import com.example.login.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -29,6 +30,7 @@ public class UserServiceImpl implements UserService {
      * @throws BadRequestException Se já existir um usuário com o mesmo e-mail cadastrado.
      */
     @Override
+    @Transactional
     public void registerUser(NewUserRequest user) {
         var existUser = userRepository.existsByEmail(user.email());
         if (existUser) {

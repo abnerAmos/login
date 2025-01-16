@@ -9,6 +9,8 @@ import java.security.SecureRandom;
 @Component
 public class ValidationCodeCache {
 
+    public static int CODE_LENGTH = 6;
+
     /**
      * Gera um código de validação aleatório para um e-mail e o armazena em cache.
      * <p>
@@ -27,11 +29,10 @@ public class ValidationCodeCache {
     @Cacheable(value = "validationCodes", key = "#email")
     public String generateValidationCode(String email) {
         String character = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        int codeLength = 6;
 
         SecureRandom random = new SecureRandom();
         StringBuilder code = new StringBuilder();
-        for (int i = 0; i < codeLength; i++) {
+        for (int i = 0; i < CODE_LENGTH; i++) {
             code.append(character.charAt(random.nextInt(character.length())));
         }
         return code.toString();

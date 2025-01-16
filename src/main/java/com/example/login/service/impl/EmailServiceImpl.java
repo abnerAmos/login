@@ -1,6 +1,7 @@
 package com.example.login.service.impl;
 
 import com.example.login.cache.ValidationCodeCache;
+import com.example.login.dto.request.CodeRequest;
 import com.example.login.exception.BadRequestException;
 import com.example.login.exception.InternalServerErrorException;
 import com.example.login.repository.UserRepository;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -34,7 +36,11 @@ public class EmailServiceImpl implements EmailService {
      */
     @Override
     public void sendRegisterEmail(String receiverEmail) {
-        sendValidationEmail(receiverEmail);
+        String code = validationCodeCache.generateValidationCode(receiverEmail);
+        String subject = "Código de Validação";
+        String text = "Seu código de validação é: <b>" + code + "</b>";
+
+        sendValidationEmail(receiverEmail, subject, text);
     }
 
     /**
@@ -44,23 +50,23 @@ public class EmailServiceImpl implements EmailService {
      * para o e-mail do usuário. Caso o código esteja expirado ou inválido, lança uma exceção.
      * Após a validação bem-sucedida, o código é removido do cache, e o usuário é habilitado para login.
      *
-     * @param email O e-mail do usuário cujo código será validado.
-     * @param code O código de validação fornecido para validação.
+     * @param codeRequest Objeto contendo e-mail do usuário e código para validação.
      * @throws BadRequestException Se o usuário não for encontrado, ou se o código de validação for inválido ou expirado.
      */
     @Override
-    public void validationCode(String email, String code) {
-        var user = userRepository.findByEmail(email);
+    @Transactional
+    public void validationCode(CodeRequest codeRequest) {
+        var user = userRepository.findByEmail(codeRequest.email());
         if (user == null) {
             throw new BadRequestException("Usuário não encontrado!");
         }
 
-        String cachedCode = validationCodeCache.getValidationCode(email);
-        if (!code.equals(cachedCode)) {
+        String cachedCode = validationCodeCache.getValidationCode(codeRequest.email());
+        if (!codeRequest.code().equals(cachedCode)) {
             throw new BadRequestException("Código de validação expirado ou inválido.");
         }
 
-        validationCodeCache.invalidateValidationCode(email);
+        validationCodeCache.invalidateValidationCode(codeRequest.email());
 
         user.setEnabled(true);
         userRepository.save(user);
@@ -83,7 +89,12 @@ public class EmailServiceImpl implements EmailService {
         }
 
         validationCodeCache.invalidateValidationCode(receiverEmail);
-        sendValidationEmail(receiverEmail);
+
+        String code = validationCodeCache.generateValidationCode(receiverEmail);
+        String subject = "Novo Código de Validação";
+        String text = "Seu código de validação atualizado é: <b>" + code + "</b>";
+
+        sendValidationEmail(receiverEmail, subject, text);
     }
 
     /**
@@ -95,17 +106,16 @@ public class EmailServiceImpl implements EmailService {
      * @param receiverEmail O e-mail do destinatário que receberá o código de validação.
      * @throws InternalServerErrorException Se ocorrer um erro durante o envio do e-mail.
      */
-    private void sendValidationEmail(String receiverEmail) {
-        String code = validationCodeCache.generateValidationCode(receiverEmail);
-
+    @Override
+    public void sendValidationEmail(String receiverEmail, String subject, String text) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
             helper.setFrom(senderEmail);
             helper.setTo(receiverEmail);
-            helper.setSubject("Código de Validação");
-            helper.setText("Seu código de validação é: <b>" + code + "</b>", true);
+            helper.setSubject(subject);
+            helper.setText(text, true);
 
             mailSender.send(message);
         } catch (MessagingException e) {

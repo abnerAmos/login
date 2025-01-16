@@ -31,13 +31,15 @@ public class SecurityFilter extends OncePerRequestFilter {
     private final HandlerExceptionResolver handlerExceptionResolver;
 
     public static final List<String> PUBLIC_ENDPOINTS_GET = List.of(
-            "/auth/validate-code",
-            "/auth/refresh-code"
     );
 
     public static final List<String> PUBLIC_ENDPOINTS_POST = List.of(
+            "/register",
             "/auth/login",
-            "/register"
+            "/auth/refresh-code",
+            "/auth/validate-code",
+            "/auth/forgot-password",
+            "/auth/reset-password"
     );
 
     /**
