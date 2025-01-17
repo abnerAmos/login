@@ -1,15 +1,19 @@
 package com.example.login.service.impl;
 
+import com.example.login.cache.TokenCache;
 import com.example.login.cache.ValidationCodeCache;
 import com.example.login.dto.request.AlterPassRequest;
 import com.example.login.exception.BadRequestException;
+import com.example.login.exception.ForbiddenException;
 import com.example.login.model.User;
 import com.example.login.repository.UserRepository;
 import com.example.login.security.TokenService;
 import com.example.login.service.AuthenticationService;
 import com.example.login.service.EmailService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -43,19 +47,45 @@ import static com.example.login.cache.ValidationCodeCache.CODE_LENGTH;
 @RequiredArgsConstructor
 public class AuthenticationServiceImpl implements UserDetailsService, AuthenticationService {
 
-    private final UserRepository userRepository;
-
-    private final ValidationCodeCache validationCodeCache;
-
-    private final EmailService emailService;
-
-    private final TokenService tokenService;
-
     private final PasswordEncoder passEncoder;
+    private final UserRepository userRepository;
+    private final ValidationCodeCache validationCodeCache;
+    private final TokenCache tokenCache;
+    private final EmailService emailService;
+    private final TokenService tokenService;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return getUser(username);
+    }
+
+    @Override
+    public String login(Authentication authentication) {
+        User user = (User) authentication.getPrincipal();
+        String existingToken = tokenCache.getExistingToken(user.getId());
+
+        if (existingToken != null) {
+            long expiration = tokenService.getExpiration(existingToken);
+            tokenCache.invalidateToken(existingToken, expiration);
+        }
+
+        String newToken = tokenService.generateToken(user);
+        tokenCache.storeToken(user.getId(), newToken, tokenService.getExpiration(newToken));
+
+        return newToken;
+    }
+
+    @Override
+    public void logout(HttpServletRequest request) {
+        String authorizationHeader = request.getHeader("Authorization");
+
+        if (authorizationHeader == null || authorizationHeader.isEmpty()) {
+            throw new ForbiddenException("Token não fornecido");
+        }
+
+        String token = authorizationHeader.replace("Bearer ", "").trim();
+        long expiration = tokenService.getExpiration(token);
+        tokenCache.invalidateToken(token, expiration);
     }
 
     @Override

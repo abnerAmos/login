@@ -15,4 +15,8 @@ public record HttpSucessResponse(
         this(Instant.now(), status, message);
     }
 
+    public HttpSucessResponse(String message) {
+        this(Instant.now(), HttpStatus.OK, message);
+    }
+
 }

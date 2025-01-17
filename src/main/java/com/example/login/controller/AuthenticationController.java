@@ -5,12 +5,11 @@ import com.example.login.dto.request.CodeRequest;
 import com.example.login.dto.request.LoginRequest;
 import com.example.login.dto.response.HttpSucessResponse;
 import com.example.login.dto.response.TokenResponse;
-import com.example.login.model.User;
 import com.example.login.security.TokenService;
 import com.example.login.service.AuthenticationService;
 import com.example.login.service.EmailService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -22,11 +21,8 @@ import org.springframework.web.bind.annotation.*;
 public class AuthenticationController {
 
     private final AuthenticationManager authenticationManager;
-
     private final AuthenticationService authenticationService;
-
     private final TokenService tokenService;
-
     private final EmailService emailService;
 
     /**
@@ -42,16 +38,24 @@ public class AuthenticationController {
     public ResponseEntity<TokenResponse> login(@RequestBody LoginRequest login) {
         var authenticationToken = new UsernamePasswordAuthenticationToken(login.email(), login.password());
         var authentication = authenticationManager.authenticate(authenticationToken);
-        var token = tokenService.generateToken((User) authentication.getPrincipal());
+        var token = authenticationService.login(authentication);
 
         return ResponseEntity.ok(new TokenResponse(token));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<HttpSucessResponse> logout(HttpServletRequest request) {
+        authenticationService.logout(request);
+
+        var httpResponse = new HttpSucessResponse("Logout realizado com sucesso");
+        return ResponseEntity.ok().body(httpResponse);
     }
 
     @PostMapping("/forgot-password")
     public ResponseEntity<HttpSucessResponse> forgotPassword(@RequestParam String email) {
         authenticationService.forgotPassword(email);
 
-        var httpResponse = new HttpSucessResponse(HttpStatus.OK, "Um e-mail foi enviado com instruções para redefinir sua senha.");
+        var httpResponse = new HttpSucessResponse("Um e-mail foi enviado com instruções para redefinir sua senha.");
         return ResponseEntity.ok().body(httpResponse);
     }
 
@@ -59,7 +63,7 @@ public class AuthenticationController {
     public ResponseEntity<HttpSucessResponse> resetPassword(@RequestBody AlterPassRequest alterPassRequest) {
         authenticationService.resetPassword(alterPassRequest);
 
-        var httpResponse = new HttpSucessResponse(HttpStatus.OK, "Sua senha foi alterada com sucesso.");
+        var httpResponse = new HttpSucessResponse("Sua senha foi alterada com sucesso.");
         return ResponseEntity.ok().body(httpResponse);
     }
 
@@ -76,7 +80,7 @@ public class AuthenticationController {
     public ResponseEntity<HttpSucessResponse> validateCode(@RequestBody CodeRequest codeRequest) {
         emailService.validationCode(codeRequest);
 
-        var httpResponse = new HttpSucessResponse(HttpStatus.OK, "Validação concluída com sucesso. Você já pode fazer login.");
+        var httpResponse = new HttpSucessResponse("Validação concluída com sucesso. Você já pode fazer login.");
         return ResponseEntity.ok().body(httpResponse);
     }
 
@@ -93,7 +97,7 @@ public class AuthenticationController {
     public ResponseEntity<HttpSucessResponse> refreshCode(@RequestParam String email) {
         emailService.sendRefreshCode(email);
 
-        var httpResponse = new HttpSucessResponse(HttpStatus.OK, "Novo código de validação enviado.");
+        var httpResponse = new HttpSucessResponse("Novo código de validação enviado.");
         return ResponseEntity.ok().body(httpResponse);
     }
 

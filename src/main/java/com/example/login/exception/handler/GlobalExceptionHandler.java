@@ -1,6 +1,9 @@
-package com.example.login.exception;
+package com.example.login.exception.handler;
 
 import com.example.login.dto.response.HttpErrorResponse;
+import com.example.login.exception.BadRequestException;
+import com.example.login.exception.ForbiddenException;
+import com.example.login.exception.InternalServerErrorException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;

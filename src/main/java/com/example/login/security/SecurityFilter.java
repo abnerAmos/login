@@ -1,5 +1,6 @@
 package com.example.login.security;
 
+import com.example.login.cache.TokenCache;
 import com.example.login.exception.ForbiddenException;
 import com.example.login.repository.UserRepository;
 import jakarta.servlet.FilterChain;
@@ -29,6 +30,7 @@ public class SecurityFilter extends OncePerRequestFilter {
     private final TokenService tokenService;
     private final UserRepository userRepository;
     private final HandlerExceptionResolver handlerExceptionResolver;
+    private final TokenCache tokenCache;
 
     public static final List<String> PUBLIC_ENDPOINTS_GET = List.of(
     );
@@ -55,6 +57,11 @@ public class SecurityFilter extends OncePerRequestFilter {
             var token = tokenRecover(request);
 
             if (token != null) {
+                // Verifica se o token está na blacklist
+                if (tokenCache.isTokenInvalidated(token)) {
+                    throw new ForbiddenException("Token inválido ou expirado");
+                }
+
                 var subject = tokenService.getSubject(token);   // Valida o token e extrai o subject (e-mail do usuário)
                 var user =  userRepository.findByEmail(subject);
                 var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities()); // Cria uma instância de autenticação para o usuário
