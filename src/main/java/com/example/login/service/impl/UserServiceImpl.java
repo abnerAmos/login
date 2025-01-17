@@ -11,8 +11,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -26,7 +24,7 @@ public class UserServiceImpl implements UserService {
     /**
      * Registra um novo usuário no sistema e envia um e-mail de validação.
      *
-     * @param user Um objeto `NewUserRequest` contendo as informações do novo usuário, como e-mail e senha.
+     * @param user Um objeto 'NewUserRequest' contendo as informações do novo usuário, como e-mail e senha.
      * @throws BadRequestException Se já existir um usuário com o mesmo e-mail cadastrado.
      */
     @Override
@@ -40,7 +38,6 @@ public class UserServiceImpl implements UserService {
         User newUser = new User();
         newUser.setEmail(user.email());
         newUser.setPassword(passEncoder.encode(user.password()));
-        newUser.setLastPassword(LocalDateTime.now());
 
         userRepository.save(newUser);
 

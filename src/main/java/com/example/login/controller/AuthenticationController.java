@@ -60,7 +60,7 @@ public class AuthenticationController {
         authenticationService.resetPassword(alterPassRequest);
 
         var httpResponse = new HttpSucessResponse(HttpStatus.OK, "Sua senha foi alterada com sucesso.");
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok().body(httpResponse);
     }
 
     /**

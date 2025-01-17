@@ -55,15 +55,16 @@ public class AuthenticationServiceImpl implements UserDetailsService, Authentica
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return Optional.of(userRepository.findByEmail(username))
-                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado com o e-mail: " + username));
+        return getUser(username);
     }
 
     @Override
     public void forgotPassword(String email) {
-        User user = userRepository.findByEmail(email);
-        if (user == null) {
-            throw new BadRequestException("Usuário não encontrado.");
+        User user = getUser(email);
+
+        if (user.getLastAlterPass() != null
+                && user.getLastAlterPass().isAfter(LocalDateTime.now().minusHours(1))) {
+            throw new BadRequestException("É necessário aguardar pelo menos 1 hora para alterar a senha novamente.");
         }
 
         String resetCode = validationCodeCache.generateValidationCode(email);
@@ -84,9 +85,12 @@ public class AuthenticationServiceImpl implements UserDetailsService, Authentica
         String token = recovery.code().substring(0, recovery.code().length() -CODE_LENGTH);
 
         String email = tokenService.getSubject(token);
-        var user = userRepository.findByEmail(email);
-        if (user == null) {
-            throw new BadRequestException("Usuário não encontrado.");
+        User user = getUser(email);
+
+        if (passEncoder.matches(recovery.password(), user.getPassword()) ||
+                (user.getLastPassword() != null
+                        && passEncoder.matches(recovery.password(), user.getLastPassword()))) {
+            throw new BadRequestException("Senha já utilizada, insira uma senha diferente.");
         }
 
         String cachedCode = validationCodeCache.getValidationCode(email);
@@ -96,7 +100,13 @@ public class AuthenticationServiceImpl implements UserDetailsService, Authentica
 
         validationCodeCache.invalidateValidationCode(email);
 
+        user.setLastPassword(user.getPassword());
         user.setPassword(passEncoder.encode(recovery.password()));
         user.setLastAlterPass(LocalDateTime.now());
+    }
+
+    private User getUser(String username) {
+        return Optional.of(userRepository.findByEmail(username))
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado."));
     }
 }

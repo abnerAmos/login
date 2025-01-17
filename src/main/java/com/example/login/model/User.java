@@ -34,7 +34,7 @@ public class User extends BaseEntity implements UserDetails {
             message = "O formato do campo 'email' é inválido.")
     private String email;
 
-    private LocalDateTime lastPassword;
+    private String lastPassword;
 
     private LocalDateTime lastAlterPass;
 
