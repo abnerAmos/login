@@ -43,6 +43,14 @@ public class AuthenticationController {
         return ResponseEntity.ok(new TokenResponse(token));
     }
 
+    /**
+     * Realiza o logout do usuário.
+     * <p>
+     * Este endpoint finaliza a sessão do usuário, invalidando seu token JWT para impedir o acesso às rotas protegidas.
+     *
+     * @param request A requisição HTTP contendo os dados necessários para realizar o logout.
+     * @return Uma resposta HTTP 200 com uma mensagem de sucesso indicando que o logout foi realizado.
+     */
     @PostMapping("/logout")
     public ResponseEntity<HttpSucessResponse> logout(HttpServletRequest request) {
         authenticationService.logout(request);
@@ -51,6 +59,14 @@ public class AuthenticationController {
         return ResponseEntity.ok().body(httpResponse);
     }
 
+    /**
+     * Inicia o processo de recuperação de senha enviando um e-mail com as instruções.
+     * <p>
+     * Este endpoint é utilizado quando o usuário esquece sua senha. Um e-mail será enviado com instruções para a redefinição da senha.
+     *
+     * @param email O e-mail do usuário para o qual as instruções serão enviadas.
+     * @return Uma resposta HTTP 200 com uma mensagem indicando que o e-mail com instruções foi enviado.
+     */
     @PostMapping("/forgot-password")
     public ResponseEntity<HttpSucessResponse> forgotPassword(@RequestParam String email) {
         authenticationService.forgotPassword(email);
@@ -59,6 +75,15 @@ public class AuthenticationController {
         return ResponseEntity.ok().body(httpResponse);
     }
 
+    /**
+     * Redefine a senha do usuário.
+     * <p>
+     * Este endpoint permite que o usuário defina uma nova senha após seguir o processo de recuperação de senha.
+     * O novo valor de senha é enviado no corpo da requisição.
+     *
+     * @param alterPassRequest Objeto contendo os dados para a alteração de senha.
+     * @return Uma resposta HTTP 200 com uma mensagem confirmando que a senha foi alterada com sucesso.
+     */
     @PostMapping("/reset-password")
     public ResponseEntity<HttpSucessResponse> resetPassword(@RequestBody AlterPassRequest alterPassRequest) {
         authenticationService.resetPassword(alterPassRequest);

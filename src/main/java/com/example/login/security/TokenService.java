@@ -72,6 +72,16 @@ public class TokenService {
         }
     }
 
+    /**
+     * Obtém o tempo restante até a expiração de um token JWT.
+     * <p>
+     * Este método decodifica o token JWT fornecido e calcula o tempo restante até a sua expiração.
+     * Se o token não for válido ou estiver expirado, será lançada uma exceção.
+     *
+     * @param token O token JWT recebido, que será validado e decodificado.
+     * @return O tempo restante até a expiração do token em milissegundos.
+     * @throws RuntimeException Caso ocorra um erro ao obter a expiração do token.
+     */
     public long getExpiration(String token) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(secret);
