@@ -1,5 +1,7 @@
 package com.example.login.model;
 
+import com.example.login.view.Views;
+import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PreUpdate;
@@ -17,8 +19,10 @@ public abstract class BaseEntity {
 
     @CreationTimestamp
     @Column(updatable = false)
+    @JsonView(Views.Complete.class)
     private LocalDateTime createdAt;
 
+    @JsonView(Views.Complete.class)
     private LocalDateTime updatedAt;
 
     @PreUpdate

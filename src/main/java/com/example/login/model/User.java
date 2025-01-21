@@ -1,6 +1,8 @@
 package com.example.login.model;
 
 import com.example.login.enums.Role;
+import com.example.login.view.Views;
+import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -23,8 +25,10 @@ public class User extends BaseEntity implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonView(Views.Basic.class)
     private Long id;
 
+    @JsonView(Views.Basic.class)
     private String username;
 
     private String password;
@@ -32,12 +36,14 @@ public class User extends BaseEntity implements UserDetails {
     @NotBlank(message = "Email não pode ser nulo ou vazio")
     @Pattern(regexp = "^[\\w.]+@\\w+\\.\\w+(\\.\\w+)?$",
             message = "O formato do campo 'email' é inválido.")
+    @JsonView(Views.Regular.class)
     private String email;
 
     private String lastPassword;
 
     private LocalDateTime lastAlterPass;
 
+    @JsonView(Views.Basic.class)
     private Boolean enabled = false;
 
     @ToString.Exclude
@@ -46,6 +52,7 @@ public class User extends BaseEntity implements UserDetails {
     @ElementCollection(fetch = FetchType.EAGER) // Gera uma tabela Embeddable baseada em uma coleção.
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id")) // Configura e personaliza a tabela em conjunto com ElementCollection.
     @Column(name = "role")
+    @JsonView(Views.Regular.class)
     private Set<Role> roles = new HashSet<>();
 
     @Override

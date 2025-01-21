@@ -39,7 +39,7 @@ public class UserController {
      * @return Uma resposta HTTP contendo o status 200 (OK) e os dados do usuário.
      *         Caso o usuário não seja encontrado, uma exceção será lançada.
      */
-    @GetMapping("/{id}")
+    @GetMapping(value = {"/{id}", "/{id}/view/{view}"})
     public ResponseEntity<User> findUser(@PathVariable Long id) {
         var user = userService.findUser(id);
 
