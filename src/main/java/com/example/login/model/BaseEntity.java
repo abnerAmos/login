@@ -1,6 +1,6 @@
 package com.example.login.model;
 
-import com.example.login.view.Views;
+import com.example.login.aspect.view.Views;
 import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;

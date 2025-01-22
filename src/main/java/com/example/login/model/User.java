@@ -1,7 +1,7 @@
 package com.example.login.model;
 
 import com.example.login.enums.Role;
-import com.example.login.view.Views;
+import com.example.login.aspect.view.Views;
 import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;

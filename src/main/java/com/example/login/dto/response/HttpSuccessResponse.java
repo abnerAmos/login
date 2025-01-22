@@ -1,6 +1,6 @@
 package com.example.login.dto.response;
 
-import com.example.login.view.Views;
+import com.example.login.aspect.view.Views;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.http.HttpStatus;
