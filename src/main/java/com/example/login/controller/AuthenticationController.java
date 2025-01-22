@@ -3,7 +3,7 @@ package com.example.login.controller;
 import com.example.login.dto.request.AlterPassRequest;
 import com.example.login.dto.request.CodeRequest;
 import com.example.login.dto.request.LoginRequest;
-import com.example.login.dto.response.HttpSucessResponse;
+import com.example.login.dto.response.HttpSuccessResponse;
 import com.example.login.dto.response.TokenResponse;
 import com.example.login.security.TokenService;
 import com.example.login.service.AuthenticationService;
@@ -52,10 +52,10 @@ public class AuthenticationController {
      * @return Uma resposta HTTP 200 com uma mensagem de sucesso indicando que o logout foi realizado.
      */
     @PostMapping("/logout")
-    public ResponseEntity<HttpSucessResponse> logout(HttpServletRequest request) {
+    public ResponseEntity<HttpSuccessResponse> logout(HttpServletRequest request) {
         authenticationService.logout(request);
 
-        var httpResponse = new HttpSucessResponse("Logout realizado com sucesso");
+        var httpResponse = new HttpSuccessResponse("Logout realizado com sucesso");
         return ResponseEntity.ok().body(httpResponse);
     }
 
@@ -68,10 +68,10 @@ public class AuthenticationController {
      * @return Uma resposta HTTP 200 com uma mensagem indicando que o e-mail com instruções foi enviado.
      */
     @PostMapping("/forgot-password")
-    public ResponseEntity<HttpSucessResponse> forgotPassword(@RequestParam String email) {
+    public ResponseEntity<HttpSuccessResponse> forgotPassword(@RequestParam String email) {
         authenticationService.forgotPassword(email);
 
-        var httpResponse = new HttpSucessResponse("Um e-mail foi enviado com instruções para redefinir sua senha.");
+        var httpResponse = new HttpSuccessResponse("Um e-mail foi enviado com instruções para redefinir sua senha.");
         return ResponseEntity.ok().body(httpResponse);
     }
 
@@ -85,10 +85,10 @@ public class AuthenticationController {
      * @return Uma resposta HTTP 200 com uma mensagem confirmando que a senha foi alterada com sucesso.
      */
     @PostMapping("/reset-password")
-    public ResponseEntity<HttpSucessResponse> resetPassword(@RequestBody AlterPassRequest alterPassRequest) {
+    public ResponseEntity<HttpSuccessResponse> resetPassword(@RequestBody AlterPassRequest alterPassRequest) {
         authenticationService.resetPassword(alterPassRequest);
 
-        var httpResponse = new HttpSucessResponse("Sua senha foi alterada com sucesso.");
+        var httpResponse = new HttpSuccessResponse("Sua senha foi alterada com sucesso.");
         return ResponseEntity.ok().body(httpResponse);
     }
 
@@ -102,10 +102,10 @@ public class AuthenticationController {
      * @return Uma resposta HTTP 200 com uma mensagem indicando que a validação foi concluída com sucesso.
      */
     @PostMapping("/validate-code")
-    public ResponseEntity<HttpSucessResponse> validateCode(@RequestBody CodeRequest codeRequest) {
+    public ResponseEntity<HttpSuccessResponse> validateCode(@RequestBody CodeRequest codeRequest) {
         emailService.validationCode(codeRequest);
 
-        var httpResponse = new HttpSucessResponse("Validação concluída com sucesso. Você já pode fazer login.");
+        var httpResponse = new HttpSuccessResponse("Validação concluída com sucesso. Você já pode fazer login.");
         return ResponseEntity.ok().body(httpResponse);
     }
 
@@ -119,10 +119,10 @@ public class AuthenticationController {
      * @return Uma resposta HTTP 200 com uma mensagem indicando que o novo código foi enviado com sucesso.
      */
     @PostMapping("/refresh-code")
-    public ResponseEntity<HttpSucessResponse> refreshCode(@RequestParam String email) {
+    public ResponseEntity<HttpSuccessResponse> refreshCode(@RequestParam String email) {
         emailService.sendRefreshCode(email);
 
-        var httpResponse = new HttpSucessResponse("Novo código de validação enviado.");
+        var httpResponse = new HttpSuccessResponse("Novo código de validação enviado.");
         return ResponseEntity.ok().body(httpResponse);
     }
 
