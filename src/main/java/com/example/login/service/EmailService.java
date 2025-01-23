@@ -1,12 +1,10 @@
 package com.example.login.service;
 
-import com.example.login.dto.request.CodeRequest;
-
 public interface EmailService {
 
     void sendRegisterEmail(String receiverEmail);
 
-    void validationCode(CodeRequest codeRequest);
+    void validationCode(String email, String code);
 
     void sendRefreshCode(String email);
 

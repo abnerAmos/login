@@ -1,7 +1,6 @@
 package com.example.login.service.impl;
 
 import com.example.login.cache.ValidationCodeCache;
-import com.example.login.dto.request.CodeRequest;
 import com.example.login.exception.BadRequestException;
 import com.example.login.exception.InternalServerErrorException;
 import com.example.login.repository.UserRepository;
@@ -50,23 +49,24 @@ public class EmailServiceImpl implements EmailService {
      * para o e-mail do usuário. Caso o código esteja expirado ou inválido, lança uma exceção.
      * Após a validação bem-sucedida, o código é removido do cache, e o usuário é habilitado para login.
      *
-     * @param codeRequest Objeto contendo e-mail do usuário e código para validação.
+     * @param email do usuário para validação.
+     * @param code código para validação.
      * @throws BadRequestException Se o usuário não for encontrado, ou se o código de validação for inválido ou expirado.
      */
     @Override
     @Transactional
-    public void validationCode(CodeRequest codeRequest) {
-        var user = userRepository.findByEmail(codeRequest.email());
+    public void validationCode(String email, String code) {
+        var user = userRepository.findByEmail(email);
         if (user == null) {
             throw new BadRequestException("Usuário não encontrado!");
         }
 
-        String cachedCode = validationCodeCache.getValidationCode(codeRequest.email());
-        if (!codeRequest.code().equals(cachedCode)) {
+        String cachedCode = validationCodeCache.getValidationCode(email);
+        if (!code.equals(cachedCode)) {
             throw new BadRequestException("Código de validação expirado ou inválido.");
         }
 
-        validationCodeCache.invalidateValidationCode(codeRequest.email());
+        validationCodeCache.invalidateValidationCode(code);
 
         user.setEnabled(true);
         userRepository.save(user);

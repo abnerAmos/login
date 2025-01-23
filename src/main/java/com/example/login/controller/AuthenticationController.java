@@ -1,7 +1,6 @@
 package com.example.login.controller;
 
 import com.example.login.dto.request.AlterPassRequest;
-import com.example.login.dto.request.CodeRequest;
 import com.example.login.dto.request.LoginRequest;
 import com.example.login.dto.response.HttpSuccessResponse;
 import com.example.login.dto.response.TokenResponse;
@@ -98,12 +97,13 @@ public class AuthenticationController {
      * Este endpoint verifica se o código fornecido corresponde ao código associado ao e-mail do usuário.
      * Se a validação for bem-sucedida, o usuário poderá prosseguir para fazer login.
      *
-     * @param codeRequest Objeto contendo e-mail do usuário e código para validação.
+     * @param email do usuário para validação.
+     * @param code código para validação.
      * @return Uma resposta HTTP 200 com uma mensagem indicando que a validação foi concluída com sucesso.
      */
     @PostMapping("/validate-code")
-    public ResponseEntity<HttpSuccessResponse> validateCode(@RequestBody CodeRequest codeRequest) {
-        emailService.validationCode(codeRequest);
+    public ResponseEntity<HttpSuccessResponse> validateCode(@RequestParam String email, @RequestParam String code) {
+        emailService.validationCode(email, code);
 
         var httpResponse = new HttpSuccessResponse("Validação concluída com sucesso. Você já pode fazer login.");
         return ResponseEntity.ok().body(httpResponse);
