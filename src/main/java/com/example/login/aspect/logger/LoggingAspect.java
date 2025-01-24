@@ -2,6 +2,7 @@ package com.example.login.aspect.logger;
 
 import com.example.login.model.collection.LogEntry;
 import com.example.login.repository.mongo.LogRepository;
+import com.example.login.util.SensitiveDataMasker;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -35,10 +36,12 @@ public class LoggingAspect {
 
         String className = joinPoint.getTarget().getClass().getName();
         String methodName = joinPoint.getSignature().getName();
+
         Object[] args = joinPoint.getArgs();
+        Object[] maskedArgs = SensitiveDataMasker.maskSensitiveData(args);
 
         try {
-            String entryMessage = String.format("Iniciando método: %s.%s com parâmetros: %s", className, methodName, Arrays.toString(args));
+            String entryMessage = String.format("Iniciando método: %s.%s com parâmetros: %s", className, methodName, Arrays.toString(maskedArgs));
             LOGGER.info(entryMessage);
             buildLogEntry("INFO", className, methodName, entryMessage, args, null, startTime, null, null);
 
@@ -105,5 +108,6 @@ public class LoggingAspect {
         // Implementar lógica para capturar o IP do usuário
         return "127.0.0.1";
     }
+
 }
 
