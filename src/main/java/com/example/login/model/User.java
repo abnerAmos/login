@@ -46,7 +46,7 @@ public class User extends BaseEntity implements UserDetails {
     private LocalDateTime lastAlterPass;
 
     @JsonView(Views.Basic.class)
-    private Boolean enabled = false;
+    private Boolean enabled;
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude

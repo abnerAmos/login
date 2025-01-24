@@ -49,9 +49,7 @@ public class SensitiveDataMasker {
      * @throws InternalServerErrorException Caso ocorra algum erro ao acessar ou copiar os campos.
      */
     public static Object maskSensitiveFields(Object arg) {
-        if (arg == null) {
-            return null;
-        }
+        if (arg == null) return null;
 
         try {
             Class<?> clazz = arg.getClass();
@@ -63,11 +61,10 @@ public class SensitiveDataMasker {
                 // Copia valores do campo
                 Object value = field.get(arg);
 
-                if (field.isAnnotationPresent(Sensitive.class)) {
+                if (field.isAnnotationPresent(Sensitive.class))
                     field.set(maskedInstance, "*****");
-                } else {
+                else
                     field.set(maskedInstance, value);
-                }
             }
 
             return maskedInstance;
