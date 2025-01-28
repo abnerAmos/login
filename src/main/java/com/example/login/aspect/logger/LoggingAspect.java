@@ -1,113 +1,98 @@
 package com.example.login.aspect.logger;
 
-import com.example.login.model.collection.LogEntry;
-import com.example.login.repository.mongo.LogRepository;
-import com.example.login.util.SensitiveDataMasker;
+import com.example.login.dto.request.AuthUser;
+import com.example.login.model.collection.AuditLog;
+import com.example.login.repository.mongo.AuditLogRepository;
+import com.example.login.security.AuthAuditorAware;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Pointcut;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
+import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Arrays;
 
 @Aspect
 @Component
+@Slf4j
 @RequiredArgsConstructor
 public class LoggingAspect {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(LoggingAspect.class);
-    private final LogRepository logRepository;
+    private final HttpServletRequest request;
+    private final AuthAuditorAware authAuditorAware;
+    private final AuditLogRepository auditLogRepository;
 
-    // Define o ponto de corte para os métodos desejados
-    @Pointcut("execution(* com.example..*Controller.*(..))")
-    public void applicationMethods() {
-    }
-
-    @Around("applicationMethods()")
-    public Object logMethodExecution(ProceedingJoinPoint joinPoint) throws Throwable {
-        long startTime = System.currentTimeMillis();
+    @Around("@annotation(org.springframework.web.bind.annotation.RequestMapping) || " +
+            "@annotation(org.springframework.web.bind.annotation.GetMapping) || " +
+            "@annotation(org.springframework.web.bind.annotation.PostMapping) || " +
+            "@annotation(org.springframework.web.bind.annotation.PutMapping) || " +
+            "@annotation(org.springframework.web.bind.annotation.PatchMapping) || " +
+            "@annotation(org.springframework.web.bind.annotation.DeleteMapping)")
+    public Object logAndAudit(ProceedingJoinPoint joinPoint) throws Throwable {
+        LocalDateTime startTime = LocalDateTime.now();
 
         String className = joinPoint.getTarget().getClass().getName();
         String methodName = joinPoint.getSignature().getName();
+        Object[] parameters = joinPoint.getArgs();
 
-        Object[] args = joinPoint.getArgs();
-        Object[] maskedArgs = SensitiveDataMasker.maskSensitiveData(args);
-
+        AuthUser authUser = null;
         try {
-            String entryMessage = String.format("Iniciando método: %s.%s com parâmetros: %s", className, methodName, Arrays.toString(maskedArgs));
-            LOGGER.info(entryMessage);
-            buildLogEntry("INFO", className, methodName, entryMessage, args, null, startTime, null, null);
+            authUser = authAuditorAware.getAuthUser();
+        } catch (IllegalStateException e) {
+            log.warn(e.getMessage());
+//            throw new IllegalStateException(e.getMessage());
+        }
 
-            Object result = joinPoint.proceed();
-            long endExecutionTime = System.currentTimeMillis();
-            long executionTime = endExecutionTime - startTime;
+        Long userId = authUser != null ? authUser.id() : null;
+        String userRole = authUser != null? authUser.role() : null;
+        String ipAddress = request.getRemoteAddr();
 
-            String exitMessage = String.format("Método %s.%s retornou: %s (Executado em %d ms)", className, methodName, result, executionTime);
-            LOGGER.info(exitMessage);
-            buildLogEntry("INFO", className, methodName, exitMessage, args, null, startTime, endExecutionTime, executionTime);
+        Object result;
+        try {
+            // Executa o método original
+            result = joinPoint.proceed();
 
-            return result;
+            // Log INFO no sucesso
+            log.info("Executed {}#{} with parameters: {}", className, methodName, parameters);
         } catch (Exception e) {
-            long endExecutionTime = System.currentTimeMillis();
-            long executionTime = endExecutionTime - startTime;
-
-            String errorMessage = String.format("Método %s.%s lançou exceção: %s (Executado em %d ms)", className, methodName, e.getMessage(), executionTime);
-            LOGGER.error(errorMessage, e);
-
-            buildLogEntry("ERROR", className, methodName, errorMessage, args, e.getMessage(), startTime, endExecutionTime, executionTime);
-
+            // Log ERROR no caso de exceção
+            log.error("Error in {}#{}: {}", className, methodName, e.getMessage());
+            saveAuditLog(className, methodName, parameters, e, startTime, userId, userRole, ipAddress);
             throw e;
         }
+
+        // Salva auditoria ao final do método
+        saveAuditLog(className, methodName, parameters, null, startTime, userId, userRole, ipAddress);
+        return result;
     }
 
-    private void buildLogEntry(String level, String className, String methodName, String details, Object[] parameters,
-                               String exception, Long startTime, Long endTime, Long executionTime) {
-        LogEntry log = LogEntry.builder()
-                .timestamp(LocalDateTime.now())
-                .level(level)
+    private void saveAuditLog(String className, String methodName, Object[] parameters, Exception e,
+                              LocalDateTime startTime, Long userId, String userRole, String ipAddress) {
+        LocalDateTime endTime = LocalDateTime.now();
+        long executionTime = Duration.between(startTime, endTime).toMillis();
+
+        AuditLog auditLog = AuditLog.builder()
+                .timestamp(endTime)
+                .level(e == null ? "INFO" : "ERROR")
                 .className(className)
                 .methodName(methodName)
-                .details(details)
+                .details(e == null ? "Execução bem-sucedida" : e.getMessage())
                 .parameters(parameters)
-                .exception(exception)
-                .userId(getCurrentUserId()) // Método para obter o usuário logado
-                .userRole(getCurrentUserRole()) // Método para obter o tipo do usuário
-                .ip(getUserIp()) // Método para obter o IP do usuário
-                .startTime(toLocalDateTime(startTime))
-                .endTime(toLocalDateTime(endTime))
+                .exception(e != null ? Arrays.toString(e.getStackTrace()) : null)
+                .userId(userId)
+                .userRole(userRole)
+                .ip(ipAddress)
+                .startTime(startTime)
+                .endTime(endTime)
                 .timeExecution(executionTime)
                 .build();
 
-        logRepository.save(log);
+        auditLogRepository.save(auditLog);
     }
-
-    private LocalDateTime toLocalDateTime(Long millis) {
-        return millis != null
-                ? LocalDateTime.ofInstant(Instant.ofEpochMilli(millis), ZoneId.systemDefault())
-                : null;
-    }
-
-    private String getCurrentUserId() {
-        // Implementar lógica para obter o ID do usuário logado
-        return "anonymous";
-    }
-
-    private String getCurrentUserRole() {
-        // Implementar lógica para obter o tipo do usuário
-        return "anonymous";
-    }
-
-    private String getUserIp() {
-        // Implementar lógica para capturar o IP do usuário
-        return "127.0.0.1";
-    }
-
 }
+
 

@@ -9,8 +9,8 @@ import java.time.LocalDateTime;
 
 @Data
 @Builder
-@Document(collection = "logs")
-public class LogEntry {
+@Document(collection = "auditLogs")
+public class AuditLog {
 
     @Id
     private String id;
@@ -22,7 +22,7 @@ public class LogEntry {
     private String details; // Mensagem do log
     private Object[] parameters; // Parâmetros do método
     private String exception; // Stacktrace ou mensagem de exceção
-    private String userId; // ID do usuário
+    private Long userId; // ID do usuário
     private String userRole; // Tipo do usuário
     private String ip; // IP do usuário
     private LocalDateTime startTime; // Inicío da execução do método
