@@ -15,7 +15,6 @@ public class AuditLog {
     @Id
     private String id;
 
-    private LocalDateTime timestamp; // Data e hora do evento
     private String level; // INFO, DEBUG, WARN, ERROR
     private String className; // Classe onde o log foi gerado
     private String methodName; // Método onde o log foi gerado

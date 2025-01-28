@@ -10,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -38,49 +40,58 @@ public class LoggingAspect {
         String className = joinPoint.getTarget().getClass().getName();
         String methodName = joinPoint.getSignature().getName();
         Object[] parameters = joinPoint.getArgs();
+        String ipAddress = request.getRemoteAddr();
 
         AuthUser authUser = null;
         try {
             authUser = authAuditorAware.getAuthUser();
         } catch (IllegalStateException e) {
             log.warn(e.getMessage());
-//            throw new IllegalStateException(e.getMessage());
+            saveAuditLog("WARN", className, methodName, e.getMessage(), parameters, e, startTime, null, null, ipAddress);
         }
 
         Long userId = authUser != null ? authUser.id() : null;
         String userRole = authUser != null? authUser.role() : null;
-        String ipAddress = request.getRemoteAddr();
 
         Object result;
         try {
-            // Executa o método original
+            String initMessage = String.format(
+                    "Iniciando método: %s.%s com parâmetros: %s",
+                    className, methodName, Arrays.toString(parameters));
+            log.info(initMessage);
+
             result = joinPoint.proceed();
 
-            // Log INFO no sucesso
-            log.info("Executed {}#{} with parameters: {}", className, methodName, parameters);
+            String returnMessage = String.format(
+                    "Método %s.%s retornou: %s (Executado em %d ms)",
+                    className, methodName, extractResponseContent(result), executionTime(startTime, LocalDateTime.now()));
+            log.info(returnMessage);
+
+            String resultMessage = initMessage + " ---> " + returnMessage;
+            saveAuditLog("INFO", className, methodName, resultMessage, parameters, null, startTime, userId, userRole, ipAddress);
         } catch (Exception e) {
-            // Log ERROR no caso de exceção
-            log.error("Error in {}#{}: {}", className, methodName, e.getMessage());
-            saveAuditLog(className, methodName, parameters, e, startTime, userId, userRole, ipAddress);
+            String errorMessage = String.format(
+                    "Método %s.%s lançou exceção: %s (Executado em %d ms)",
+                    className, methodName, e.getMessage(), executionTime(startTime, LocalDateTime.now()));
+
+            log.error(errorMessage);
+            saveAuditLog("ERROR", className, methodName, errorMessage, parameters, e, startTime, userId, userRole, ipAddress);
             throw e;
         }
 
-        // Salva auditoria ao final do método
-        saveAuditLog(className, methodName, parameters, null, startTime, userId, userRole, ipAddress);
         return result;
     }
 
-    private void saveAuditLog(String className, String methodName, Object[] parameters, Exception e,
-                              LocalDateTime startTime, Long userId, String userRole, String ipAddress) {
+    private void saveAuditLog(String level, String className, String methodName, String details, Object[] parameters,
+                              Exception e, LocalDateTime startTime, Long userId, String userRole, String ipAddress) {
+
         LocalDateTime endTime = LocalDateTime.now();
-        long executionTime = Duration.between(startTime, endTime).toMillis();
 
         AuditLog auditLog = AuditLog.builder()
-                .timestamp(endTime)
-                .level(e == null ? "INFO" : "ERROR")
+                .level(level)
                 .className(className)
                 .methodName(methodName)
-                .details(e == null ? "Execução bem-sucedida" : e.getMessage())
+                .details(details)
                 .parameters(parameters)
                 .exception(e != null ? Arrays.toString(e.getStackTrace()) : null)
                 .userId(userId)
@@ -88,10 +99,32 @@ public class LoggingAspect {
                 .ip(ipAddress)
                 .startTime(startTime)
                 .endTime(endTime)
-                .timeExecution(executionTime)
+                .timeExecution(executionTime(startTime, endTime))
                 .build();
 
         auditLogRepository.save(auditLog);
+    }
+
+    private Long executionTime(LocalDateTime startTime, LocalDateTime endTime) {
+        return Duration.between(startTime, endTime).toMillis();
+    }
+
+    private String extractResponseContent(Object result) {
+        if (result instanceof ResponseEntity<?> responseEntity) {
+
+            // Verificar se a resposta contém o corpo
+            Object body = responseEntity.getBody();
+
+            // Se o corpo for um MappingJacksonValue, extraímos o valor real
+            if (body instanceof MappingJacksonValue jacksonValue) {
+                return jacksonValue.getValue().toString();
+            }
+
+            return body.toString();
+        }
+
+        // Para outros tipos de retorno, converte diretamente para string
+        return result != null ? result.toString() : "<null>";
     }
 }
 
