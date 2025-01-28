@@ -4,6 +4,7 @@ import com.example.login.dto.request.AuthUser;
 import com.example.login.model.collection.AuditLog;
 import com.example.login.repository.mongo.AuditLogRepository;
 import com.example.login.security.AuthAuditorAware;
+import com.example.login.util.Sensitive;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,16 +12,20 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.stereotype.Component;
 
+import java.lang.reflect.Field;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Aspect
-@Component
 @Slf4j
+@Component
 @RequiredArgsConstructor
 public class LoggingAspect {
 
@@ -28,18 +33,14 @@ public class LoggingAspect {
     private final AuthAuditorAware authAuditorAware;
     private final AuditLogRepository auditLogRepository;
 
-    @Around("@annotation(org.springframework.web.bind.annotation.RequestMapping) || " +
-            "@annotation(org.springframework.web.bind.annotation.GetMapping) || " +
-            "@annotation(org.springframework.web.bind.annotation.PostMapping) || " +
-            "@annotation(org.springframework.web.bind.annotation.PutMapping) || " +
-            "@annotation(org.springframework.web.bind.annotation.PatchMapping) || " +
-            "@annotation(org.springframework.web.bind.annotation.DeleteMapping)")
+    @Around("execution(* com.example..*Controller.*(..))")
     public Object logAndAudit(ProceedingJoinPoint joinPoint) throws Throwable {
         LocalDateTime startTime = LocalDateTime.now();
 
         String className = joinPoint.getTarget().getClass().getName();
         String methodName = joinPoint.getSignature().getName();
-        Object[] parameters = joinPoint.getArgs();
+        Object[] parameters = sanitizeParameters(joinPoint.getArgs());
+
         String ipAddress = request.getRemoteAddr();
 
         AuthUser authUser = null;
@@ -111,21 +112,72 @@ public class LoggingAspect {
 
     private String extractResponseContent(Object result) {
         if (result instanceof ResponseEntity<?> responseEntity) {
-
-            // Verificar se a resposta contém o corpo
             Object body = responseEntity.getBody();
-
-            // Se o corpo for um MappingJacksonValue, extraímos o valor real
-            if (body instanceof MappingJacksonValue jacksonValue) {
-                return jacksonValue.getValue().toString();
-            }
-
-            return body.toString();
+            return sanitizeObjectForLogging(body).toString();
         }
 
-        // Para outros tipos de retorno, converte diretamente para string
-        return result != null ? result.toString() : "<null>";
+        return result != null ? sanitizeObjectForLogging(result).toString() : "<null>";
     }
+
+    private Object[] sanitizeParameters(Object[] parameters) {
+        return Arrays.stream(parameters)
+                .map(this::sanitizeObjectForLogging)
+                .toArray();
+    }
+
+    private Object sanitizeObjectForLogging(Object obj) {
+        if (obj == null) return null;
+
+        // Ignorar sanitização para tipos simples e classes de pacotes do Java
+        if (obj.getClass().isPrimitive() || obj instanceof String || obj instanceof Number ||
+                obj instanceof Boolean || obj.getClass().getPackageName().startsWith("java.")) {
+            return obj;
+        }
+
+        if (obj instanceof Map<?, ?> map) {
+            return map.entrySet().stream()
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            entry -> sanitizeObjectForLogging(entry.getValue())));
+        }
+
+        if (obj instanceof Collection<?> collection) {
+            return collection.stream()
+                    .map(this::sanitizeObjectForLogging)
+                    .collect(Collectors.toList());
+        }
+
+        return sanitizeComplexObject(obj);
+    }
+
+    private Object sanitizeComplexObject(Object obj) {
+        if (obj == null) return null;
+
+        // Ignorar objetos de pacotes padrão do Java ou classes imutáveis
+        if (obj.getClass().getPackageName().startsWith("java.")) {
+            return obj; // Retorna o objeto sem alterar
+        }
+
+        try {
+            // Cria um mapa representando os campos do objeto
+            Map<String, Object> sanitizedFields = new HashMap<>();
+            Field[] fields = obj.getClass().getDeclaredFields();
+            for (Field field : fields) {
+                field.setAccessible(true);
+                Object fieldValue = field.get(obj);
+
+                // Mascarar valores sensíveis
+                if (field.isAnnotationPresent(Sensitive.class)) {
+                    sanitizedFields.put(field.getName(), "******");
+                } else {
+                    sanitizedFields.put(field.getName(), sanitizeObjectForLogging(fieldValue));
+                }
+            }
+            return sanitizedFields; // Retorna o mapa como representação segura
+        } catch (Exception e) {
+            log.warn("Falha ao sanitizar objeto para log: {}", e.getMessage());
+            return obj.toString(); // Retorna a string do objeto em caso de falha
+        }
+    }
+
 }
-
-

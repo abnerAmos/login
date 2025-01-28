@@ -41,6 +41,7 @@ public class User extends BaseEntity implements UserDetails {
     @JsonView(Views.Regular.class)
     private String email;
 
+    @Sensitive
     private String lastPassword;
 
     private LocalDateTime lastAlterPass;
