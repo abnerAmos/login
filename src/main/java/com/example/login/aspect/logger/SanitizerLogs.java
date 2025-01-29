@@ -1,7 +1,7 @@
 package com.example.login.aspect.logger;
 
 import com.example.login.util.Sensitive;
-import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
@@ -12,8 +12,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
-@Slf4j
+@RequiredArgsConstructor
 public class SanitizerLogs {
+
+    private final LogBuilder log;
 
     public Object[] sanitizeParameters(Object[] parameters) {
         return Arrays.stream(parameters)
@@ -71,7 +73,7 @@ public class SanitizerLogs {
             }
             return sanitizedFields; // Retorna o mapa como representação segura
         } catch (Exception e) {
-            log.warn("Falha ao sanitizar objeto para log: {}", e.getMessage());
+            log.warn("Falha ao sanitizar objeto para log: {}", e);
             return obj.toString(); // Retorna a string do objeto em caso de falha
         }
     }

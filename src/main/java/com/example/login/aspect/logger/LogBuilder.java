@@ -20,10 +20,17 @@ public class LogBuilder {
     private final HttpServletRequest request;
 
     /**
-     * Loga uma mensagem de nível INFO e salva no banco.
+     * Loga uma mensagem de nível INFO.
      */
     public void info(String message) {
         log.info(message);
+    }
+
+    /**
+     * Loga uma mensagem de nível WARN.
+     */
+    public void warn(String message, Exception e) {
+        log.warn(message, e);
     }
 
     /**

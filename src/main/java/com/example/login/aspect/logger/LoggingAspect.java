@@ -52,10 +52,8 @@ public class LoggingAspect {
             String returnMessage = String.format(
                     "Método %s.%s retornou: %s (Executado em %d ms)",
                     className, methodName, extractResponseContent(result), executionTime(startTime, LocalDateTime.now()));
-            log.info(returnMessage);
 
-            String resultMessage = initMessage + " ---> " + returnMessage;
-            log.info(className, methodName, resultMessage, parameters, startTime, userId, userRole);
+            log.info(className, methodName, returnMessage, parameters, startTime, userId, userRole);
         } catch (Exception e) {
             String errorMessage = String.format(
                     "Método %s.%s lançou exceção: %s (Executado em %d ms)",
