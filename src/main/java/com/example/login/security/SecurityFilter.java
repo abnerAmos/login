@@ -1,6 +1,7 @@
 package com.example.login.security;
 
 import com.example.login.cache.TokenCache;
+import com.example.login.dto.request.AuthUser;
 import com.example.login.exception.ForbiddenException;
 import com.example.login.repository.UserRepository;
 import jakarta.servlet.FilterChain;
@@ -64,7 +65,9 @@ public class SecurityFilter extends OncePerRequestFilter {
 
                 var subject = tokenService.getSubject(token);   // Valida o token e extrai o subject (e-mail do usuário)
                 var user =  userRepository.findByEmail(subject);
-                var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities()); // Cria uma instância de autenticação para o usuário
+                var authUser = new AuthUser(user.getId(), user.getUsername(), user.getRoles()); // encapsula os dados de autenticação no objeto 'AuthUser'
+
+                var authentication = new UsernamePasswordAuthenticationToken(authUser, null, user.getAuthorities()); // Cria uma instância de autenticação para o usuário
                 SecurityContextHolder.getContext().setAuthentication(authentication); // Configura o contexto de segurança do Spring com os detalhes do usuário autenticado
             }
 

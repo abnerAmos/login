@@ -11,18 +11,33 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Classe responsável por sanitizar dados sensíveis antes de serem registrados nos logs.
+ */
 @Component
 @RequiredArgsConstructor
 public class SanitizerLogs {
 
     private final LogBuilder log;
 
+    /**
+     * Sanitiza um array de parâmetros antes de registrá-los no log.
+     *
+     * @param parameters Array de objetos a serem sanitizados.
+     * @return Um novo array contendo os valores sanitizados.
+     */
     public Object[] sanitizeParameters(Object[] parameters) {
         return Arrays.stream(parameters)
                 .map(this::sanitizeObjectForLogging)
                 .toArray();
     }
 
+    /**
+     * Sanitiza um objeto para registro seguro em logs.
+     *
+     * @param obj Objeto a ser sanitizado.
+     * @return Representação segura do objeto.
+     */
     public Object sanitizeObjectForLogging(Object obj) {
         if (obj == null) return null;
 
@@ -32,6 +47,7 @@ public class SanitizerLogs {
             return obj;
         }
 
+        // Sanitiza mapas aplicando a sanitização recursivamente aos valores
         if (obj instanceof Map<?, ?> map) {
             return map.entrySet().stream()
                     .collect(Collectors.toMap(
@@ -39,6 +55,7 @@ public class SanitizerLogs {
                             entry -> sanitizeObjectForLogging(entry.getValue())));
         }
 
+        // Sanitiza coleções aplicando a sanitização recursivamente a cada elemento
         if (obj instanceof Collection<?> collection) {
             return collection.stream()
                     .map(this::sanitizeObjectForLogging)
@@ -48,6 +65,12 @@ public class SanitizerLogs {
         return sanitizeComplexObject(obj);
     }
 
+    /**
+     * Sanitiza objetos complexos, mascarando campos anotados como @Sensitive.
+     *
+     * @param obj Objeto a ser sanitizado.
+     * @return Um mapa representando os campos do objeto, com dados sensíveis mascarados.
+     */
     private Object sanitizeComplexObject(Object obj) {
         if (obj == null) return null;
 
@@ -71,10 +94,11 @@ public class SanitizerLogs {
                     sanitizedFields.put(field.getName(), sanitizeObjectForLogging(fieldValue));
                 }
             }
-            return sanitizedFields; // Retorna o mapa como representação segura
+
+            return sanitizedFields;
         } catch (Exception e) {
             log.warn("Falha ao sanitizar objeto para log: {}", e);
-            return obj.toString(); // Retorna a string do objeto em caso de falha
+            return obj.toString();
         }
     }
 }

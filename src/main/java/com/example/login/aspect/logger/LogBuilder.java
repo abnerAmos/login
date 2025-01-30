@@ -1,5 +1,6 @@
 package com.example.login.aspect.logger;
 
+import com.example.login.enums.Role;
 import com.example.login.model.collection.AuditLog;
 import com.example.login.repository.mongo.AuditLogRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Set;
 
 @Slf4j
 @Component
@@ -37,7 +39,8 @@ public class LogBuilder {
      * Loga uma mensagem de nível INFO e salva no banco.
      */
     public void info(String className, String methodName, String message,
-                     Object[] parameters, LocalDateTime startTime, Long userId, String userRole) {
+                     Object[] parameters, LocalDateTime startTime, Long userId, Set<Role> userRole) {
+        log.info(message);
         saveAuditLog("INFO", className, methodName, message, parameters, null, startTime, userId, userRole);
     }
 
@@ -46,7 +49,7 @@ public class LogBuilder {
      */
     public void warn(String className, String methodName, String details,
                      Object[] parameters, Exception e, LocalDateTime startTime, Long userId,
-                     String userRole) {
+                     Set<Role> userRole) {
         log.warn(details, e);
         saveAuditLog("WARN", className, methodName, details, parameters, e, startTime, userId, userRole);
     }
@@ -56,13 +59,30 @@ public class LogBuilder {
      */
     public void error(String className, String methodName, String message,
                       Object[] parameters, Exception e, LocalDateTime startTime, Long userId,
-                      String userRole) {
+                      Set<Role> userRole) {
         log.error(message, e);
         saveAuditLog("ERROR", className, methodName, message, parameters, e, startTime, userId, userRole);
     }
 
+    /**
+     * Registra um log de auditoria no banco de dados.
+     *
+     * <p>Este método cria e salva um registro de auditoria contendo informações sobre a execução de um método,
+     * como classe, nome do método, detalhes, parâmetros, exceções e tempo de execução. Também armazena
+     * informações do usuário autenticado e seu endereço IP.</p>
+     *
+     * @param level        O nível do log (ex: "INFO", "ERROR", "DEBUG").
+     * @param className    O nome da classe onde o log foi gerado.
+     * @param methodName   O nome do método onde o log foi gerado.
+     * @param details      Informações adicionais sobre a ação executada.
+     * @param parameters   Parâmetros fornecidos ao método registrado no log.
+     * @param e            Exceção lançada durante a execução, se houver (caso contrário, será null).
+     * @param startTime    Momento em que o método começou a ser executado.
+     * @param userId       Identificação do usuário que executou a ação.
+     * @param userRole     Conjunto de papéis (roles) do usuário autenticado.
+     */
     private void saveAuditLog(String level, String className, String methodName, String details, Object[] parameters,
-                              Exception e, LocalDateTime startTime, Long userId, String userRole) {
+                              Exception e, LocalDateTime startTime, Long userId, Set<Role> userRole) {
 
         String ipAddress = request.getRemoteAddr();
 

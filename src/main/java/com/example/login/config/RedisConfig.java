@@ -10,9 +10,6 @@ import org.springframework.data.redis.core.RedisTemplate;
  * <p>
  * Esta classe define uma configuração de bean para um RedisTemplate que será usado para realizar
  * operações com o Redis, como leitura e gravação de dados.
- * <p>
- * Anotação {@code @Configuration}:
- * Indica que esta classe é uma classe de configuração do Spring e pode declarar beans que serão gerenciados pelo contêiner.
  */
 @Configuration
 public class RedisConfig {
