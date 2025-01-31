@@ -183,7 +183,7 @@ public class AuthenticationServiceImpl implements UserDetailsService, Authentica
     }
 
     private User getUser(String username) {
-        return Optional.of(userRepository.findByEmail(username))
+        return Optional.ofNullable(userRepository.findByEmail(username))
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado."));
     }
 }
