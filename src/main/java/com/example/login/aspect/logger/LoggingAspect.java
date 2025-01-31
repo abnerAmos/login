@@ -1,6 +1,7 @@
 package com.example.login.aspect.logger;
 
 import com.example.login.dto.request.AuthUser;
+import com.example.login.dto.response.LogContextResponse;
 import com.example.login.enums.Role;
 import com.example.login.security.AuthAuditorAware;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
 
@@ -48,16 +50,18 @@ public class LoggingAspect {
         Long userId = authUser.map(AuthUser::id).orElse(null);
         Set<Role> userRoles = authUser.map(AuthUser::roles).orElse(null);
 
+        LogContextResponse logContext = new LogContextResponse(
+                className, methodName, startTime, parameters, userId, userRoles);
+
         Object result;
         try {
-            log.info(String.format("Iniciando método: %s.%s com parâmetros: %s",
-                    className, methodName, sanitizerLogs.sanitizeObjectForLogging(parameters)));
+            logInitMessage(logContext);
 
             result = joinPoint.proceed();
 
-            logSuccessMessage(className, methodName, result, startTime, parameters, userId, userRoles);
+            logReturnMessage(logContext, result);
         } catch (Exception e) {
-            logErrorMessage(className, methodName, e, startTime, parameters, userId, userRoles);
+            logErrorMessage(logContext, e);
             throw e;
         }
 
@@ -84,31 +88,49 @@ public class LoggingAspect {
     }
 
     /**
-     * Constrói uma mensagem de sucesso para o log.
+     * Constrói uma mensagem informativa de inicio de chamada para o log.
      */
-    private void logSuccessMessage(String className, String methodName, Object result, LocalDateTime startTime,
-                                   Object[] parameters, Long userId, Set<Role> roles) {
-        String returnMessage = String.format(
-                "Método %s.%s retornou: %s (Executado em %d ms)",
-                className, methodName, extractResponseContent(result), executionTime(startTime, LocalDateTime.now()));
+    private void logInitMessage(LogContextResponse logContext) {
+        String initMessage = String.format(
+                "Iniciando método: %s.%s com parâmetros: %s",
+                logContext.className(), logContext.methodName(), Arrays.toString(logContext.parameters()));
 
-        log.info(className, methodName, returnMessage, parameters, startTime, userId, roles);
+        log.info(logContext.className(), logContext.methodName(), initMessage,
+                logContext.parameters(), logContext.startTime(), logContext.userId(), logContext.roles());
     }
 
     /**
-     * Registra uma mensagem de sucesso no log após a execução bem-sucedida do método.
+     * Constrói uma mensagem informativa de retorno para o log.
      */
-    private void logErrorMessage(String className, String methodName, Exception e, LocalDateTime startTime,
-                                 Object[] parameters, Long userId, Set<Role> roles) {
-        String errorMessage = String.format(
-                "Método %s.%s lançou exceção: %s (Executado em %d ms)",
-                className, methodName, e.getMessage(), executionTime(startTime, LocalDateTime.now()));
+    private void logReturnMessage(LogContextResponse logContext, Object result) {
+        String returnMessage = String.format(
+                "Método %s.%s retornou: %s (Executado em %d ms)",
+                logContext.className(), logContext.methodName(),
+                extractResponseContent(result), executionTime(logContext.startTime(), LocalDateTime.now()));
 
-        log.error(className, methodName, errorMessage, parameters, e, startTime, userId, roles);
+        log.info(logContext.className(), logContext.methodName(), returnMessage, logContext.parameters(),
+                logContext.startTime(), logContext.userId(), logContext.roles());
     }
 
     /**
      * Registra uma mensagem de erro no log quando o método lança uma exceção.
+     */
+    private void logErrorMessage(LogContextResponse logContext, Exception e) {
+        String errorMessage = String.format(
+                "Método %s.%s lançou exceção: %s (Executado em %d ms)",
+                logContext.className(), logContext.methodName(), e.getMessage(),
+                executionTime(logContext.startTime(), LocalDateTime.now()));
+
+        log.error(logContext.className(), logContext.methodName(), errorMessage, e,
+                logContext.startTime(), logContext.userId(), logContext.roles());
+    }
+
+    /**
+     * Extrai e sanitiza o conteúdo de uma resposta para fins de logging.
+     *
+     * @param result O objeto de resposta a ser processado, podendo ser uma instância de {@link ResponseEntity}
+     *               ou qualquer outro tipo de objeto retornado pelo controlador.
+     * @return Uma representação em string do conteúdo da resposta, sanitizada para logging.
      */
     private String extractResponseContent(Object result) {
         if (result instanceof ResponseEntity<?> responseEntity) {

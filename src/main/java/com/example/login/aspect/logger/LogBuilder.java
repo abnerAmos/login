@@ -58,10 +58,9 @@ public class LogBuilder {
      * Loga uma mensagem de nível ERROR e salva no banco.
      */
     public void error(String className, String methodName, String message,
-                      Object[] parameters, Exception e, LocalDateTime startTime, Long userId,
-                      Set<Role> userRole) {
+                      Exception e, LocalDateTime startTime, Long userId, Set<Role> userRole) {
         log.error(message, e);
-        saveAuditLog("ERROR", className, methodName, message, parameters, e, startTime, userId, userRole);
+        saveAuditLog("ERROR", className, methodName, message, null, e, startTime, userId, userRole);
     }
 
     /**

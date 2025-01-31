@@ -3,6 +3,7 @@ package com.example.login.security;
 import com.example.login.cache.TokenCache;
 import com.example.login.dto.request.AuthUser;
 import com.example.login.exception.ForbiddenException;
+import com.example.login.model.User;
 import com.example.login.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -65,7 +66,7 @@ public class SecurityFilter extends OncePerRequestFilter {
 
                 var subject = tokenService.getSubject(token);   // Valida o token e extrai o subject (e-mail do usuário)
                 var user =  userRepository.findByEmail(subject);
-                var authUser = new AuthUser(user.getId(), user.getUsername(), user.getRoles()); // encapsula os dados de autenticação no objeto 'AuthUser'
+                var authUser = enrichAuthUser(user);
 
                 var authentication = new UsernamePasswordAuthenticationToken(authUser, null, user.getAuthorities()); // Cria uma instância de autenticação para o usuário
                 SecurityContextHolder.getContext().setAuthentication(authentication); // Configura o contexto de segurança do Spring com os detalhes do usuário autenticado
@@ -75,6 +76,33 @@ public class SecurityFilter extends OncePerRequestFilter {
         } catch (ForbiddenException | AuthenticationException e) {
             handlerExceptionResolver.resolveException(request, response, null, e); // Delegar a exceção ao HandlerExceptionResolver
         }
+    }
+
+    /**
+     * Verifica se o endpoint atual está na lista de rotas públicas.
+     *
+     * @param request A requisição HTTP.
+     * @return true se o endpoint for público, false caso contrário.
+     */
+    public boolean isPublicEndpoint(HttpServletRequest request) {
+        String path = request.getRequestURI();
+
+        List<String> allPublicEndpoints = Stream.concat(
+                PUBLIC_ENDPOINTS_GET.stream(),
+                PUBLIC_ENDPOINTS_POST.stream()
+        ).toList();
+
+        return allPublicEndpoints.stream().anyMatch(publicPath -> publicPath.equalsIgnoreCase(path));
+    }
+
+    /**
+     * Converte um objeto User em um AuthUser para ser utilizado na autenticação.
+     *
+     * @param user Objeto User recuperado do banco de dados.
+     * @return Objeto AuthUser contendo as informações essenciais do usuário.
+     */
+    private AuthUser enrichAuthUser(User user) {
+        return new AuthUser(user.getId(), user.getUsername(), user.getRoles());
     }
 
     /**
@@ -96,20 +124,4 @@ public class SecurityFilter extends OncePerRequestFilter {
         }
     }
 
-    /**
-     * Verifica se o endpoint atual está na lista de rotas públicas.
-     *
-     * @param request A requisição HTTP.
-     * @return true se o endpoint for público, false caso contrário.
-     */
-    private boolean isPublicEndpoint(HttpServletRequest request) {
-        String path = request.getRequestURI();
-
-        List<String> allPublicEndpoints = Stream.concat(
-                PUBLIC_ENDPOINTS_GET.stream(),
-                PUBLIC_ENDPOINTS_POST.stream()
-        ).toList();
-
-        return allPublicEndpoints.stream().anyMatch(publicPath -> publicPath.equalsIgnoreCase(path));
-    }
 }

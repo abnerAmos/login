@@ -72,7 +72,9 @@ public class AuthenticationServiceImpl implements UserDetailsService, Authentica
     /**
      * Realiza o login do usuário e gera um novo token JWT.
      * <p>
-     * Este método verifica se o usuário já possui um token existente. Se houver, o token anterior é invalidado. Em seguida, um novo token JWT é gerado e armazenado no cache de tokens.
+     * Este método verifica se o usuário já possui um token existente.
+     * Se houver, o token anterior é invalidado.
+     * Em seguida, um novo token JWT é gerado e armazenado no cache de tokens.
      *
      * @param authentication A autenticação contendo as credenciais do usuário.
      * @return O novo token JWT gerado para o usuário.

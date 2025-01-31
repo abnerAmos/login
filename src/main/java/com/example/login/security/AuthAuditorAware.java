@@ -1,6 +1,8 @@
 package com.example.login.security;
 
 import com.example.login.dto.request.AuthUser;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -18,7 +20,11 @@ import java.util.Optional;
  * específico.
  */
 @Component
+@RequiredArgsConstructor
 public class AuthAuditorAware implements AuditorAware<AuthUser> {
+
+    private final SecurityFilter securityFilter;
+    private final HttpServletRequest request;
 
     /**
      * Retorna o usuário autenticado que será utilizado como auditor.
@@ -54,6 +60,10 @@ public class AuthAuditorAware implements AuditorAware<AuthUser> {
      * @throws IllegalStateException Caso não haja um usuário autenticado.
      */
     public AuthUser getAuthUser() {
+        // Não tenta obter usuário para endpoints públicos
+        if (securityFilter.isPublicEndpoint(request))
+            return null;
+
         return getCurrentAuditor().orElseThrow(
                 () -> new IllegalStateException("Usuário não encontrado."));
     }
