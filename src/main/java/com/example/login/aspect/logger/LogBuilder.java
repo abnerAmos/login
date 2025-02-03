@@ -12,6 +12,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -94,7 +95,7 @@ public class LogBuilder {
                 .methodName(methodName)
                 .details(details)
                 .parameters(parameters)
-                .exception(e != null ? Arrays.toString(e.getStackTrace()) : null)
+                .exception(getException(e))
                 .userId(userId)
                 .userRole(userRole)
                 .ip(ipAddress)
@@ -104,5 +105,26 @@ public class LogBuilder {
                 .build();
 
         auditLogRepository.save(auditLog);
+    }
+
+    /**
+     * Obtém uma representação simplificada da exceção, limitando o número de linhas do stack trace.
+     * <p>
+     * Este método recebe uma exceção e extrai até 5 linhas do stack trace para evitar logs excessivamente
+     * longos e manter a legibilidade. Se a exceção for {@code null}, retorna {@code null}.
+     *
+     * @param e A exceção da qual será extraído o stack trace.
+     * @return Uma string contendo até 5 linhas do stack trace da exceção ou {@code null} se a exceção for {@code null}.
+     */
+    private String getException(Exception e) {
+        String exceptionMessage = null;
+        if (e != null) {
+            int maxLines = 5;
+            exceptionMessage = Arrays.stream(e.getStackTrace())
+                    .limit(maxLines)
+                    .map(StackTraceElement::toString)
+                    .collect(Collectors.joining("\n"));
+        }
+        return exceptionMessage;
     }
 }
