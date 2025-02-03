@@ -1,6 +1,7 @@
 package com.example.login.service.impl;
 
 import com.example.login.dto.request.NewUserRequest;
+import com.example.login.enums.Role;
 import com.example.login.exception.BadRequestException;
 import com.example.login.model.User;
 import com.example.login.repository.UserRepository;
@@ -33,9 +34,12 @@ public class UserServiceImpl implements UserService {
             throw new BadRequestException("Usuário já existe!");
         }
 
+        Role role = Role.getRole(user.role());
+
         User newUser = new User();
         newUser.setEmail(user.email());
         newUser.setPassword(passEncoder.encode(user.password()));
+        newUser.setRole(role);
         newUser.setEnabled(false);
 
         userRepository.save(newUser);

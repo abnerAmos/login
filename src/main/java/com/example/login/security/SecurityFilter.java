@@ -102,7 +102,7 @@ public class SecurityFilter extends OncePerRequestFilter {
      * @return Objeto AuthUser contendo as informações essenciais do usuário.
      */
     private AuthUser enrichAuthUser(User user) {
-        return new AuthUser(user.getId(), user.getUsername(), user.getRoles());
+        return new AuthUser(user.getId(), user.getUsername(), user.getRole());
     }
 
     /**

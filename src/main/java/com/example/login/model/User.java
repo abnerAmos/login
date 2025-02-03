@@ -1,7 +1,7 @@
 package com.example.login.model;
 
-import com.example.login.enums.Role;
 import com.example.login.aspect.view.Views;
+import com.example.login.enums.Role;
 import com.example.login.util.Sensitive;
 import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
@@ -15,7 +15,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Set;
 
 @Data
@@ -52,19 +51,12 @@ public class User extends BaseEntity implements UserDetails {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @Enumerated(EnumType.STRING)
-    @ElementCollection(fetch = FetchType.EAGER) // Gera uma tabela Embeddable baseada em uma coleção.
-    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id")) // Configura e personaliza a tabela em conjunto com ElementCollection.
-    @Column(name = "role")
     @JsonView(Views.Regular.class)
-    private Set<Role> roles = new HashSet<>();
+    private Role role;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        Set<GrantedAuthority> authorities = new HashSet<>();
-        for (Role role : roles) {
-            authorities.add(role::getAuthority);
-        }
-        return authorities;
+        return Set.of(() -> role.getAuthority());
     }
 
     @Override

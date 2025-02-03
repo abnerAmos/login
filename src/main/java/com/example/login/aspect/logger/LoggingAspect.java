@@ -15,7 +15,6 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * Aspecto responsável por registrar logs de chamadas a métodos de controllers.
@@ -48,10 +47,10 @@ public class LoggingAspect {
         // Obtém informações do usuário autenticado de forma segura
         Optional<AuthUser> authUser = getAuthenticatedUser(className, methodName, parameters, startTime);
         Long userId = authUser.map(AuthUser::id).orElse(null);
-        Set<Role> userRoles = authUser.map(AuthUser::roles).orElse(null);
+        Role userRole = authUser.map(AuthUser::role).orElse(null);
 
         LogContextResponse logContext = new LogContextResponse(
-                className, methodName, startTime, parameters, userId, userRoles);
+                className, methodName, startTime, parameters, userId, userRole);
 
         Object result;
         try {
@@ -96,7 +95,7 @@ public class LoggingAspect {
                 logContext.className(), logContext.methodName(), Arrays.toString(logContext.parameters()));
 
         log.info(logContext.className(), logContext.methodName(), initMessage,
-                logContext.parameters(), logContext.startTime(), logContext.userId(), logContext.roles());
+                logContext.parameters(), logContext.startTime(), logContext.userId(), logContext.role());
     }
 
     /**
@@ -109,7 +108,7 @@ public class LoggingAspect {
                 extractResponseContent(result), executionTime(logContext.startTime(), LocalDateTime.now()));
 
         log.info(logContext.className(), logContext.methodName(), returnMessage, logContext.parameters(),
-                logContext.startTime(), logContext.userId(), logContext.roles());
+                logContext.startTime(), logContext.userId(), logContext.role());
     }
 
     /**
@@ -122,7 +121,7 @@ public class LoggingAspect {
                 executionTime(logContext.startTime(), LocalDateTime.now()));
 
         log.error(logContext.className(), logContext.methodName(), errorMessage, e,
-                logContext.startTime(), logContext.userId(), logContext.roles());
+                logContext.startTime(), logContext.userId(), logContext.role());
     }
 
     /**

@@ -1,0 +1,2 @@
+ALTER TABLE tb_users ADD COLUMN role VARCHAR(255);
+DROP TABLE user_roles;

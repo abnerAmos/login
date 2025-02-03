@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -40,7 +39,7 @@ public class LogBuilder {
      * Loga uma mensagem de nível INFO e salva no banco.
      */
     public void info(String className, String methodName, String message,
-                     Object[] parameters, LocalDateTime startTime, Long userId, Set<Role> userRole) {
+                     Object[] parameters, LocalDateTime startTime, Long userId, Role userRole) {
         log.info(message);
         saveAuditLog("INFO", className, methodName, message, parameters, null, startTime, userId, userRole);
     }
@@ -48,9 +47,8 @@ public class LogBuilder {
     /**
      * Loga uma mensagem de nível WARN e salva no banco.
      */
-    public void warn(String className, String methodName, String details,
-                     Object[] parameters, Exception e, LocalDateTime startTime, Long userId,
-                     Set<Role> userRole) {
+    public void warn(String className, String methodName, String details, Object[] parameters,
+                     Exception e, LocalDateTime startTime, Long userId, Role userRole) {
         log.warn(details, e);
         saveAuditLog("WARN", className, methodName, details, parameters, e, startTime, userId, userRole);
     }
@@ -59,7 +57,7 @@ public class LogBuilder {
      * Loga uma mensagem de nível ERROR e salva no banco.
      */
     public void error(String className, String methodName, String message,
-                      Exception e, LocalDateTime startTime, Long userId, Set<Role> userRole) {
+                      Exception e, LocalDateTime startTime, Long userId, Role userRole) {
         log.error(message, e);
         saveAuditLog("ERROR", className, methodName, message, null, e, startTime, userId, userRole);
     }
@@ -82,7 +80,7 @@ public class LogBuilder {
      * @param userRole     Conjunto de papéis (roles) do usuário autenticado.
      */
     private void saveAuditLog(String level, String className, String methodName, String details, Object[] parameters,
-                              Exception e, LocalDateTime startTime, Long userId, Set<Role> userRole) {
+                              Exception e, LocalDateTime startTime, Long userId, Role userRole) {
 
         String ipAddress = request.getRemoteAddr();
 

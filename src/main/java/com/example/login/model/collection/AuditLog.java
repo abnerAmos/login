@@ -7,7 +7,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
-import java.util.Set;
 
 @Data
 @Builder
@@ -24,7 +23,7 @@ public class AuditLog {
     private Object[] parameters; // Parâmetros do método
     private String exception; // Stacktrace ou mensagem de exceção
     private Long userId; // ID do usuário
-    private Set<Role> userRole; // Tipo do usuário
+    private Role userRole; // Tipo do usuário
     private String ip; // IP do usuário
     private LocalDateTime startTime; // Inicío da execução do método
     private LocalDateTime endTime; // Fim da execução do método
