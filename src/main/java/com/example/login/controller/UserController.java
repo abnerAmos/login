@@ -1,6 +1,6 @@
 package com.example.login.controller;
 
-import com.example.login.dto.request.NewUserRequest;
+import com.example.login.dto.request.UserRequest;
 import com.example.login.dto.response.HttpSuccessResponse;
 import com.example.login.model.User;
 import com.example.login.service.UserService;
@@ -25,7 +25,7 @@ public class UserController {
      *         Caso ocorra alguma falha na validação ou processamento, uma exceção será lançada.
      */
     @PostMapping("/register")
-    public ResponseEntity<HttpSuccessResponse> register(@RequestBody @Valid NewUserRequest user) {
+    public ResponseEntity<HttpSuccessResponse> register(@RequestBody @Valid UserRequest user) {
         userService.registerUser(user);
 
         var httpResponse = new HttpSuccessResponse(HttpStatus.CREATED, "Cadastro efetuado com sucesso");

@@ -1,10 +1,11 @@
 package com.example.login.dto.request;
 
+import com.example.login.util.Sensitive;
 import com.example.login.validation.ValidPassword;
 
-public record NewUserRequest(
+public record UserRequest(
         String username,
         String email,
         String role,
-        @ValidPassword String password) {
+        @ValidPassword @Sensitive String password) {
 }

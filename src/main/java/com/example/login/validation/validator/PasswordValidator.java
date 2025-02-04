@@ -20,15 +20,6 @@ public class PasswordValidator implements ConstraintValidator<ValidPassword, Str
             "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&.])[0-9a-zA-Z@$!%*?&.]{8,}$";
 
     /**
-     * Padrão de expressão regular para evitar sequências simples na senha.
-     * <p>
-     * Este padrão detecta sequências numéricas (ex: 123, 234) e sequências de letras consecutivas (ex: abc, XYZ).
-     * Também detecta a repetição de três caracteres consecutivos, como "aaa" ou "111".
-     */
-    private static final String SEQUENCES_PATTERN =
-            ".*(012|123|234|345|456|567|678|789|890|[a-z]{3}|[A-Z]{3}|([a-zA-Z])\1\1).*";
-
-    /**
      * Valida a senha de acordo com os padrões definidos.
      * <p>
      * Este método verifica se a senha é nula, se contém sequências simples ou caracteres repetidos, e se atende aos critérios de complexidade definidos no padrão de senha.
@@ -42,10 +33,6 @@ public class PasswordValidator implements ConstraintValidator<ValidPassword, Str
     public boolean isValid(String password, ConstraintValidatorContext context) {
         if (password == null) {
             return validator(context, "Senha não pode ser nula");
-        }
-
-        if (password.matches(SEQUENCES_PATTERN)) {
-            return validator(context, "A senha não deve conter sequenciais");
         }
 
         if (!password.matches(PASSWORD_PATTERN)) {

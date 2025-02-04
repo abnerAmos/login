@@ -1,6 +1,6 @@
 package com.example.login.service.impl;
 
-import com.example.login.dto.request.NewUserRequest;
+import com.example.login.dto.request.UserRequest;
 import com.example.login.enums.Role;
 import com.example.login.exception.BadRequestException;
 import com.example.login.model.User;
@@ -23,12 +23,12 @@ public class UserServiceImpl implements UserService {
     /**
      * Registra um novo usuário no sistema e envia um e-mail de validação.
      *
-     * @param user Um objeto 'NewUserRequest' contendo as informações do novo usuário, como e-mail e senha.
+     * @param user Um objeto 'UserRequest' contendo as informações do novo usuário, como e-mail e senha.
      * @throws BadRequestException Se já existir um usuário com o mesmo e-mail cadastrado.
      */
     @Override
     @Transactional
-    public void registerUser(NewUserRequest user) {
+    public void registerUser(UserRequest user) {
         var existUser = userRepository.existsByEmail(user.email());
         if (existUser) {
             throw new BadRequestException("Usuário já existe!");

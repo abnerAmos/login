@@ -35,8 +35,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<HttpErrorResponse> handleGenericException(Exception ex, HttpServletRequest request) {
         var error = getHttpErrorResponse(request, INTERNAL_SERVER_ERROR, ex.getMessage());
-        ex.printStackTrace();
-
         return ResponseEntity.internalServerError().body(error);
     }
 
@@ -50,8 +48,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InternalServerErrorException.class)
     public ResponseEntity<HttpErrorResponse> handleInternalServerErrorException(InternalServerErrorException ex, HttpServletRequest request) {
         var error = getHttpErrorResponse(request, INTERNAL_SERVER_ERROR, ex.getMessage());
-        ex.printStackTrace();
-
         return ResponseEntity.internalServerError().body(error);
     }
 
@@ -65,8 +61,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<HttpErrorResponse> handleAuthenticationException(AuthenticationException ex, HttpServletRequest request) {
         var error = getHttpErrorResponse(request, UNAUTHORIZED, "Erro de autenticação: " + ex.getMessage());
-        ex.printStackTrace();
-
         return ResponseEntity.status(UNAUTHORIZED).body(error);
     }
 
@@ -80,8 +74,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<HttpErrorResponse> handleBadRequestException(BadRequestException ex, HttpServletRequest request) {
         var error = getHttpErrorResponse(request, BAD_REQUEST, ex.getMessage());
-        ex.printStackTrace();
-
         return ResponseEntity.badRequest().body(error);
     }
 
@@ -95,8 +87,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ForbiddenException.class)
     public ResponseEntity<HttpErrorResponse> handleBadRequestException(ForbiddenException ex, HttpServletRequest request) {
         var error = getHttpErrorResponse(request, FORBIDDEN, ex.getMessage());
-        ex.printStackTrace();
-
         return ResponseEntity.status(FORBIDDEN).body(error);
     }
 
@@ -117,8 +107,6 @@ public class GlobalExceptionHandler {
                 .orElse("Erro de validação");
 
         var error = getHttpErrorResponse(request, BAD_REQUEST, errorMessage);
-        ex.printStackTrace();
-
         return ResponseEntity.badRequest().body(error);
     }
 
@@ -143,8 +131,6 @@ public class GlobalExceptionHandler {
                 .orElse("Erro de validação");
 
         var error = getHttpErrorResponse(request, BAD_REQUEST, errorMessage);
-        ex.printStackTrace();
-
         return ResponseEntity.badRequest().body(error);
     }
 
