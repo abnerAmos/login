@@ -9,6 +9,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -126,18 +127,26 @@ public class LoggingAspect {
 
     /**
      * Extrai e sanitiza o conteúdo de uma resposta para fins de logging.
+     * <p>
+     * Este método processa um objeto de resposta, verificando se ele é uma instância de {@link ResponseEntity}.
+     * Se for, ele extrai o corpo da resposta e, caso este corpo seja um {@link MappingJacksonValue},
+     * extrai o valor interno.
      *
-     * @param result O objeto de resposta a ser processado, podendo ser uma instância de {@link ResponseEntity}
-     *               ou qualquer outro tipo de objeto retornado pelo controlador.
+     * @param result O objeto de resposta a ser processado.
      * @return Uma representação em string do conteúdo da resposta, sanitizada para logging.
      */
     private String extractResponseContent(Object result) {
         if (result instanceof ResponseEntity<?> responseEntity) {
             Object body = responseEntity.getBody();
-            return sanitizerLogs.sanitizeObjectForLogging(body).toString();
+
+            if (body instanceof MappingJacksonValue mappingJacksonValue) {
+                body = mappingJacksonValue.getValue();
+            }
+
+            return sanitizerLogs.sanitizeComplexObject(body).toString();
         }
 
-        return result != null ? sanitizerLogs.sanitizeObjectForLogging(result).toString() : "<null>";
+        return result != null ? sanitizerLogs.sanitizeComplexObject(result).toString() : "<null>";
     }
 
     /**
