@@ -7,5 +7,5 @@ public interface UserService {
 
     void registerUser(UserRequest user);
 
-    User findUser(Long id);
+    User findUser();
 }

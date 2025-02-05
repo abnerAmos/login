@@ -33,15 +33,14 @@ public class UserController {
     }
 
     /**
-     * Busca as informações de um usuário específico com base no ID fornecido.
+     * Busca as informações do usuário logado.
      *
-     * @param id O identificador único (ID) do usuário a ser buscado.
      * @return Uma resposta HTTP contendo o status 200 (OK) e os dados do usuário.
      *         Caso o usuário não seja encontrado, uma exceção será lançada.
      */
-    @GetMapping(value = {"/{id}", "/{id}/view/{view}"})
-    public ResponseEntity<User> findUser(@PathVariable Long id) {
-        var user = userService.findUser(id);
+    @GetMapping(value = {"", "/view/{view}"})
+    public ResponseEntity<User> findUser() {
+        var user = userService.findUser();
 
         return ResponseEntity.status(HttpStatus.OK).body(user);
     }

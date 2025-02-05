@@ -5,6 +5,7 @@ import com.example.login.enums.Role;
 import com.example.login.exception.BadRequestException;
 import com.example.login.model.User;
 import com.example.login.repository.UserRepository;
+import com.example.login.security.AuthAuditorAware;
 import com.example.login.service.EmailService;
 import com.example.login.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passEncoder;
     private final EmailService emailService;
+    private final AuthAuditorAware authAuditorAware;
 
     /**
      * Registra um novo usuário no sistema e envia um e-mail de validação.
@@ -48,8 +50,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User findUser(Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new BadRequestException("Usuário já existe!"));
+    public User findUser() {
+        var userId = authAuditorAware.getAuthUser().id();
+
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new BadRequestException("Usuário inexistente!"));
     }
 }
