@@ -13,42 +13,46 @@ public class TokenCache {
     private final RedisTemplate<String, String> redisTemplate;
 
     /**
-     * Armazena o token no Redis.
+     * Armazena o token no Redis com um tempo de expiração definido.
      *
-     * @param userId O id do usuário.
-     * @param token O token a ser invalidado.
-     * @param expiration Tempo de expiração em segundos.
+     * @param userId     ID do usuário ao qual o token pertence.
+     * @param token      Token JWT a ser armazenado.
+     * @param expiration Tempo de expiração do token em milissegundos.
+     * @param typeToken  Tipo do token, podendo ser {@code ACCESS_TOKEN} ou {@code REFRESH_TOKEN}.
      */
-    public void storeToken(Long userId, String token, long expiration) {
-        redisTemplate.opsForValue().set("user:" + userId + ":token", token, expiration, TimeUnit.MILLISECONDS);
+    public void storeToken(Long userId, String token, long expiration, String typeToken) {
+        redisTemplate.opsForValue()
+                .set("user:" + userId + ":" + typeToken, token, expiration, TimeUnit.MILLISECONDS);
     }
 
     /**
-     * Recupera o token no Redis, caso ele exista.
+     * Recupera o token armazenado no Redis com base no tipo especificado.
      *
-     * @param userId O id do usuário.
+     * @param userId    ID do usuário ao qual o token pertence.
+     * @param typeToken Tipo do token, podendo ser {@code ACCESS_TOKEN} ou {@code REFRESH_TOKEN}.
+     * @return O token armazenado, ou {@code null} caso não exista.
      */
-    public String getExistingToken(Long userId) {
-        return redisTemplate.opsForValue().get("user:" + userId + ":token");
+    public String getExistingToken(Long userId, String typeToken) {
+        return redisTemplate.opsForValue()
+                .get("user:" + userId + ":" + typeToken);
     }
 
     /**
      * Adiciona um token à blacklist no Redis.
      *
      * @param token O token a ser invalidado.
-     * @param expiration Tempo de expiração em segundos.
      */
-    public void invalidateToken(String token, long expiration) {
-        redisTemplate.opsForValue().set(token, "invalid", expiration, TimeUnit.MILLISECONDS);
+    public void invalidateToken(String token) {
+        redisTemplate.opsForSet().add("blacklist_tokens", token);
     }
 
     /**
-     * Verifica se um token está na blacklist.
+     * Verifica se um token está na blacklist armazenada no Redis.
      *
-     * @param token O token a ser verificado.
-     * @return true se o token estiver na blacklist, caso contrário false.
+     * @param token Token a ser verificado.
+     * @return {@code true} se o token estiver na blacklist, caso contrário {@code false}.
      */
     public boolean isTokenInvalidated(String token) {
-        return redisTemplate.hasKey(token);
+        return Boolean.TRUE.equals(redisTemplate.opsForSet().isMember("blacklist_tokens", token));
     }
 }

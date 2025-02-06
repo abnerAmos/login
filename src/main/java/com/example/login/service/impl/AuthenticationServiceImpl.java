@@ -3,10 +3,13 @@ package com.example.login.service.impl;
 import com.example.login.cache.TokenCache;
 import com.example.login.cache.ValidationCodeCache;
 import com.example.login.dto.request.AlterPassRequest;
+import com.example.login.dto.response.TokenData;
+import com.example.login.dto.response.TokenResponse;
 import com.example.login.exception.BadRequestException;
 import com.example.login.exception.ForbiddenException;
 import com.example.login.model.User;
 import com.example.login.repository.UserRepository;
+import com.example.login.security.AuthAuditorAware;
 import com.example.login.security.TokenService;
 import com.example.login.service.AuthenticationService;
 import com.example.login.service.EmailService;
@@ -25,6 +28,8 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static com.example.login.cache.ValidationCodeCache.CODE_LENGTH;
+import static com.example.login.security.TokenService.ACCESS_TOKEN;
+import static com.example.login.security.TokenService.REFRESH_TOKEN;
 
 /**
  * Serviço responsável pela autenticação de usuários na aplicação.
@@ -47,12 +52,13 @@ import static com.example.login.cache.ValidationCodeCache.CODE_LENGTH;
 @RequiredArgsConstructor
 public class AuthenticationServiceImpl implements UserDetailsService, AuthenticationService {
 
-    private final PasswordEncoder passEncoder;
-    private final UserRepository userRepository;
-    private final ValidationCodeCache validationCodeCache;
     private final TokenCache tokenCache;
     private final EmailService emailService;
     private final TokenService tokenService;
+    private final PasswordEncoder passEncoder;
+    private final UserRepository userRepository;
+    private final AuthAuditorAware authAuditorAware;
+    private final ValidationCodeCache validationCodeCache;
 
     /**
      * Carrega os detalhes do usuário com base no nome de usuário fornecido.
@@ -70,29 +76,38 @@ public class AuthenticationServiceImpl implements UserDetailsService, Authentica
     }
 
     /**
-     * Realiza o login do usuário e gera um novo token JWT.
+     * Autentica o usuário e gera novos tokens JWT (Access Token e Refresh Token).
      * <p>
-     * Este método verifica se o usuário já possui um token existente.
-     * Se houver, o token anterior é invalidado.
-     * Em seguida, um novo token JWT é gerado e armazenado no cache de tokens.
+     * Caso o usuário já possua um Access Token ativo, ele será invalidado antes da geração de um novo.
+     * O novo Access Token é armazenado no cache de tokens.
+     * <p>
+     * Se o usuário já tiver um Refresh Token armazenado, ele será reutilizado.
+     * Caso contrário, um novo Refresh Token será gerado e armazenado no cache.
      *
-     * @param authentication A autenticação contendo as credenciais do usuário.
-     * @return O novo token JWT gerado para o usuário.
+     * @param authentication Objeto de autenticação contendo as credenciais do usuário.
+     * @return Um {@link TokenResponse} contendo o novo Access Token e o Refresh Token.
      */
     @Override
-    public String login(Authentication authentication) {
+    public TokenResponse login(Authentication authentication) {
         User user = (User) authentication.getPrincipal();
-        String existingToken = tokenCache.getExistingToken(user.getId());
+        String accessToken = tokenCache.getExistingToken(user.getId(), ACCESS_TOKEN);
 
-        if (existingToken != null) {
-            long expiration = tokenService.getExpiration(existingToken);
-            tokenCache.invalidateToken(existingToken, expiration);
+        if (accessToken != null) {
+            tokenCache.invalidateToken(accessToken);
         }
 
-        String newToken = tokenService.generateToken(user);
-        tokenCache.storeToken(user.getId(), newToken, tokenService.getExpiration(newToken));
+        TokenData newAccessToken = tokenService.generateToken(user, ACCESS_TOKEN);
+        tokenCache.storeToken(user.getId(), newAccessToken.token(), newAccessToken.expiration(), ACCESS_TOKEN);
 
-        return newToken;
+
+        String refreshToken = tokenCache.getExistingToken(user.getId(), REFRESH_TOKEN);
+        if (refreshToken != null) {
+            TokenData newRefreshToken = tokenService.generateToken(user, REFRESH_TOKEN);
+            tokenCache.storeToken(user.getId(), newRefreshToken.token(), newRefreshToken.expiration(), REFRESH_TOKEN);
+            refreshToken = newRefreshToken.token();
+        }
+
+        return new TokenResponse(newAccessToken.token(), refreshToken);
     }
 
     /**
@@ -113,8 +128,7 @@ public class AuthenticationServiceImpl implements UserDetailsService, Authentica
         }
 
         String token = authorizationHeader.replace("Bearer ", "").trim();
-        long expiration = tokenService.getExpiration(token);
-        tokenCache.invalidateToken(token, expiration);
+        tokenCache.invalidateToken(token);
     }
 
     /**
@@ -123,12 +137,12 @@ public class AuthenticationServiceImpl implements UserDetailsService, Authentica
      * Este método verifica se o usuário solicitou recentemente uma mudança de senha (verificando a hora da última alteração).
      * Caso o tempo limite tenha sido excedido, um e-mail com um link de redefinição de senha será enviado para o usuário.
      *
-     * @param email O e-mail do usuário que solicitou a recuperação de senha.
+     * @param email do usuário que solicitou a recuperação de senha.
      * @throws BadRequestException Caso o usuário tenha solicitado alteração de senha recentemente.
      */
     @Override
     public void forgotPassword(String email) {
-        User user = getUser(email);
+        User user = getUser(null);
 
         if (user.getLastAlterPass() != null
                 && user.getLastAlterPass().isAfter(LocalDateTime.now().minusHours(1))) {
@@ -136,9 +150,9 @@ public class AuthenticationServiceImpl implements UserDetailsService, Authentica
         }
 
         String resetCode = validationCodeCache.generateValidationCode(email);
-        String resetToken = tokenService.generateToken(user);
+        TokenData resetToken = tokenService.generateToken(user, ACCESS_TOKEN);
 
-        String resetLink = "http://localhost:8080/auth/reset-password?token=" + resetToken + resetCode;
+        String resetLink = "http://localhost:8080/auth/reset-password?token=" + resetToken.token() + resetCode;
         String subject = "Redefinição de Senha";
         String text = "Clique no link para redefinir sua senha: " + resetLink + "<br><br>"
                 + "<b>Este link é exclusivo e deve ser usado apenas por você. Não o compartilhe com ninguém.<b>";
@@ -160,9 +174,7 @@ public class AuthenticationServiceImpl implements UserDetailsService, Authentica
     public void resetPassword(AlterPassRequest recovery) {
         String code = recovery.code().substring(recovery.code().length() -CODE_LENGTH);
         String token = recovery.code().substring(0, recovery.code().length() -CODE_LENGTH);
-
-        String email = tokenService.getSubject(token);
-        User user = getUser(email);
+        User user = getUser(null);
 
         if (passEncoder.matches(recovery.password(), user.getPassword()) ||
                 (user.getLastPassword() != null
@@ -170,12 +182,12 @@ public class AuthenticationServiceImpl implements UserDetailsService, Authentica
             throw new BadRequestException("Senha já utilizada, insira uma senha diferente.");
         }
 
-        String cachedCode = validationCodeCache.getValidationCode(email);
+        String cachedCode = validationCodeCache.getValidationCode(user.getEmail());
         if (!code.equals(cachedCode)) {
             throw new BadRequestException("Código de validação expirado ou inválido.");
         }
 
-        validationCodeCache.invalidateValidationCode(email);
+        validationCodeCache.invalidateValidationCode(user.getEmail());
 
         user.setLastPassword(user.getPassword());
         user.setPassword(passEncoder.encode(recovery.password()));
@@ -183,7 +195,12 @@ public class AuthenticationServiceImpl implements UserDetailsService, Authentica
     }
 
     private User getUser(String username) {
+        if (username == null) {
+            username = authAuditorAware.getAuthUser().username();
+        }
+
         return Optional.ofNullable(userRepository.findByEmail(username))
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado."));
+
     }
 }

@@ -31,7 +31,7 @@ public class AuthenticationController {
      * e, caso sejam válidas, retorna um token JWT que pode ser utilizado para autenticação em requisições subsequentes.
      *
      * @param user Um objeto do tipo usuário que contém o e-mail e a senha do usuário.
-     * @return Uma resposta HTTP 200 contendo o token JWT, caso a autenticação seja bem-sucedida.
+     * @return Uma resposta HTTP 200 contendo o accessToken e refreshToken JWT, caso a autenticação seja bem-sucedida.
      */
     @PostMapping("/login")
     public ResponseEntity<TokenResponse> login(@RequestBody User user) {
@@ -39,7 +39,7 @@ public class AuthenticationController {
         var authentication = authenticationManager.authenticate(authenticationToken);
         var token = authenticationService.login(authentication);
 
-        return ResponseEntity.ok(new TokenResponse(token));
+        return ResponseEntity.ok(token);
     }
 
     /**

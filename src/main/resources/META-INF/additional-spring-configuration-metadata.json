@@ -1,0 +1,14 @@
+{
+  "properties": [
+    {
+      "name": "security.accessToken.expiration.minutes",
+      "type": "java.lang.Long",
+      "description": "Tempo de expiração do token de acesso."
+    },
+    {
+      "name": "security.refreshToken.expiration.minutes",
+      "type": "java.lang.Long",
+      "description": "Tempo de expiração do token de atualização."
+    }
+  ]
+}
