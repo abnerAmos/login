@@ -8,6 +8,7 @@ import com.example.login.security.TokenService;
 import com.example.login.service.AuthenticationService;
 import com.example.login.service.EmailService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -40,6 +41,13 @@ public class AuthenticationController {
         var token = authenticationService.login(authentication);
 
         return ResponseEntity.ok(token);
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<TokenResponse> refreshToken(@RequestBody @Valid TokenResponse refreshTokenRequest) {
+        var refreshToken = authenticationService.refreshToken(refreshTokenRequest.refreshToken());
+
+        return ResponseEntity.ok(refreshToken);
     }
 
     /**

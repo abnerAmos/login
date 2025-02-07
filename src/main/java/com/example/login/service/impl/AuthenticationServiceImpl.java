@@ -90,24 +90,27 @@ public class AuthenticationServiceImpl implements UserDetailsService, Authentica
     @Override
     public TokenResponse login(Authentication authentication) {
         User user = (User) authentication.getPrincipal();
-        String accessToken = tokenCache.getExistingToken(user.getId(), ACCESS_TOKEN);
-
-        if (accessToken != null) {
-            tokenCache.invalidateToken(accessToken);
-        }
-
-        TokenData newAccessToken = tokenService.generateToken(user, ACCESS_TOKEN);
-        tokenCache.storeToken(user.getId(), newAccessToken.token(), newAccessToken.expiration(), ACCESS_TOKEN);
-
+        var newAccessToken = updateToken(user, ACCESS_TOKEN);
 
         String refreshToken = tokenCache.getExistingToken(user.getId(), REFRESH_TOKEN);
-        if (refreshToken != null) {
+        if (refreshToken == null) {
             TokenData newRefreshToken = tokenService.generateToken(user, REFRESH_TOKEN);
             tokenCache.storeToken(user.getId(), newRefreshToken.token(), newRefreshToken.expiration(), REFRESH_TOKEN);
             refreshToken = newRefreshToken.token();
         }
 
         return new TokenResponse(newAccessToken.token(), refreshToken);
+    }
+
+    @Override
+    public TokenResponse refreshToken(String refreshTokenRequest) {
+        String username = tokenService.getSubject(refreshTokenRequest);
+        User user = getUser(username);
+
+        var newAccessToken = updateToken(user, ACCESS_TOKEN);
+        var newRefreshToken = updateToken(user, REFRESH_TOKEN);
+
+        return new TokenResponse(newRefreshToken.token(), newRefreshToken.token());
     }
 
     /**
@@ -201,6 +204,17 @@ public class AuthenticationServiceImpl implements UserDetailsService, Authentica
 
         return Optional.ofNullable(userRepository.findByEmail(username))
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado."));
+    }
 
+    private TokenData updateToken(User user, String typeToken) {
+        String token = tokenCache.getExistingToken(user.getId(), typeToken);
+        if (token != null) {
+            tokenCache.invalidateToken(token);
+        }
+
+        TokenData newToken = tokenService.generateToken(user, typeToken);
+        tokenCache.storeToken(user.getId(), newToken.token(), newToken.expiration(), typeToken);
+
+        return newToken;
     }
 }

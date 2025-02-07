@@ -25,8 +25,8 @@ import java.util.stream.Stream;
  * Filtro de segurança responsável por interceptar requisições,
  * validar o token JWT e autenticar o usuário no contexto de segurança do Spring.
  */
-@AllArgsConstructor
 @Component
+@AllArgsConstructor
 public class SecurityFilter extends OncePerRequestFilter {
 
     private final TokenService tokenService;
@@ -43,7 +43,8 @@ public class SecurityFilter extends OncePerRequestFilter {
             "/auth/refresh-code",
             "/auth/validate-code",
             "/auth/forgot-password",
-            "/auth/reset-password"
+            "/auth/reset-password",
+            "/auth/refresh-token"
     );
 
     /**
@@ -111,7 +112,7 @@ public class SecurityFilter extends OncePerRequestFilter {
      * @param request A requisição HTTP.
      * @return O token JWT extraído, ou null se o cabeçalho não estiver presente.
      */
-    private String tokenRecover(HttpServletRequest request) {
+    public String tokenRecover(HttpServletRequest request) {
         if (isPublicEndpoint(request)) {
             return null;
         }
