@@ -36,7 +36,6 @@ public class TokenService {
     @Value("${security.refreshToken.expiration.minutes}")
     private Long timeExpirationRefreshToken;
 
-    private static final String ISSUER = "LoginModule";
     public static final String ACCESS_TOKEN = "accessToken";
     public static final String REFRESH_TOKEN = "refreshToken";
 
@@ -60,7 +59,7 @@ public class TokenService {
         try {
             Algorithm algorithm = Algorithm.HMAC256(secret);
             String token = JWT.create()
-                    .withIssuer(ISSUER)      // Define o emissor do token
+                    .withIssuer(typeToken)      // Define o emissor do token
                     .withSubject(user.getUsername())    // Define o subject (identificação do usuário)
                     .withExpiresAt(expiration)   // Define a data de expiração do token
                     .sign(algorithm);                   // Assina o token com o algoritmo HMAC256
@@ -78,11 +77,11 @@ public class TokenService {
      * @return O subject do token, normalmente o login/username do usuário.
      * @throws AuthenticationException Caso o token seja inválido ou esteja expirado.
      */
-    public String getSubject(String token) {
+    public String getSubject(String token, String typeToken) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(secret);
             return JWT.require(algorithm)
-                    .withIssuer(ISSUER)  // Valida o emissor do token
+                    .withIssuer(typeToken)  // Valida o emissor do token
                     .build()
                     .verify(token)      // Verifica a integridade e validade do token
                     .getSubject();      // Retorna o subject do token

@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static com.example.login.security.TokenService.ACCESS_TOKEN;
+
 /**
  * Filtro de segurança responsável por interceptar requisições,
  * validar o token JWT e autenticar o usuário no contexto de segurança do Spring.
@@ -65,7 +67,7 @@ public class SecurityFilter extends OncePerRequestFilter {
                     throw new ForbiddenException("Token inválido ou expirado");
                 }
 
-                var subject = tokenService.getSubject(token);   // Valida o token e extrai o subject (e-mail do usuário)
+                var subject = tokenService.getSubject(token, ACCESS_TOKEN);   // Valida o token e extrai o subject (e-mail do usuário)
                 var user =  userRepository.findByEmail(subject);
                 var authUser = enrichAuthUser(user);
 

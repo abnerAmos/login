@@ -17,6 +17,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -93,7 +94,7 @@ public class AuthenticationServiceImpl implements UserDetailsService, Authentica
         var newAccessToken = updateToken(user, ACCESS_TOKEN);
 
         String refreshToken = tokenCache.getExistingToken(user.getId(), REFRESH_TOKEN);
-        if (refreshToken == null) {
+        if (refreshToken == null || tokenCache.isTokenInvalidated(refreshToken)) {
             TokenData newRefreshToken = tokenService.generateToken(user, REFRESH_TOKEN);
             tokenCache.storeToken(user.getId(), newRefreshToken.token(), newRefreshToken.expiration(), REFRESH_TOKEN);
             refreshToken = newRefreshToken.token();
@@ -104,13 +105,17 @@ public class AuthenticationServiceImpl implements UserDetailsService, Authentica
 
     @Override
     public TokenResponse refreshToken(String refreshTokenRequest) {
-        String username = tokenService.getSubject(refreshTokenRequest);
+        if (tokenCache.isTokenInvalidated(refreshTokenRequest)) {
+            throw new AuthenticationException("Token inválido ou expirado") {};
+        }
+
+        String username = tokenService.getSubject(refreshTokenRequest, REFRESH_TOKEN);
         User user = getUser(username);
 
         var newAccessToken = updateToken(user, ACCESS_TOKEN);
         var newRefreshToken = updateToken(user, REFRESH_TOKEN);
 
-        return new TokenResponse(newRefreshToken.token(), newRefreshToken.token());
+        return new TokenResponse(newAccessToken.token(), newRefreshToken.token());
     }
 
     /**
