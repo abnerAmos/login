@@ -20,7 +20,7 @@ public class AuditLog {
     private String className; // Classe onde o log foi gerado
     private String methodName; // Método onde o log foi gerado
     private String details; // Mensagem do log
-    private Object[] parameters; // Parâmetros do método
+    private String parameters; // Parâmetros do método
     private String exception; // Stacktrace ou mensagem de exceção
     private Long userId; // ID do usuário
     private Role userRole; // Tipo do usuário

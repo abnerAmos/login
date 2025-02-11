@@ -92,7 +92,7 @@ public class LogBuilder {
                 .className(className)
                 .methodName(methodName)
                 .details(details)
-                .parameters(parameters)
+                .parameters(Arrays.toString(parameters))
                 .exception(getException(e))
                 .userId(userId)
                 .userRole(userRole)
