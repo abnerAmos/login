@@ -26,6 +26,9 @@ import static com.example.login.security.TokenService.ACCESS_TOKEN;
 /**
  * Filtro de segurança responsável por interceptar requisições,
  * validar o token JWT e autenticar o usuário no contexto de segurança do Spring.
+ * <p>
+ * PS: {@link OncePerRequestFilter} verifica cada request recebida para efetuar as devidas
+ * validações e filtros necessários.
  */
 @Component
 @AllArgsConstructor
@@ -40,8 +43,8 @@ public class SecurityFilter extends OncePerRequestFilter {
     );
 
     public static final List<String> PUBLIC_ENDPOINTS_POST = List.of(
-            "/register",
             "/auth/login",
+            "/auth/register",
             "/auth/refresh-code",
             "/auth/validate-code",
             "/auth/forgot-password",

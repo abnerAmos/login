@@ -1,15 +1,18 @@
 package com.example.login.controller;
 
 import com.example.login.dto.request.AlterPassRequest;
+import com.example.login.dto.request.UserRequest;
 import com.example.login.dto.response.HttpSuccessResponse;
 import com.example.login.dto.response.TokenResponse;
 import com.example.login.model.User;
 import com.example.login.security.TokenService;
 import com.example.login.service.AuthenticationService;
 import com.example.login.service.EmailService;
+import com.example.login.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -24,6 +27,7 @@ public class AuthenticationController {
     private final AuthenticationService authenticationService;
     private final TokenService tokenService;
     private final EmailService emailService;
+    private final UserService userService;
 
     /**
      * Autentica o usuário e retorna um token JWT para acesso às rotas protegidas.
@@ -64,6 +68,22 @@ public class AuthenticationController {
 
         var httpResponse = new HttpSuccessResponse("Logout realizado com sucesso");
         return ResponseEntity.ok().body(httpResponse);
+    }
+
+    /**
+     * Registra um novo usuário na aplicação.
+     *
+     * @param user Contém os dados do usuário a ser registrado.
+     *             A validação é realizada usando as anotações de validação (@Valid) no objeto.
+     * @return Uma resposta HTTP contendo o status 201 (Created) e uma mensagem de sucesso.
+     *         Caso ocorra alguma falha na validação ou processamento, uma exceção será lançada.
+     */
+    @PostMapping("/register")
+    public ResponseEntity<HttpSuccessResponse> register(@RequestBody @Valid UserRequest user) {
+        userService.registerUser(user);
+
+        var httpResponse = new HttpSuccessResponse(HttpStatus.CREATED, "Cadastro efetuado com sucesso");
+        return ResponseEntity.status(HttpStatus.CREATED).body(httpResponse);
     }
 
     /**
