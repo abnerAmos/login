@@ -30,6 +30,22 @@ public class AuthenticationController {
     private final UserService userService;
 
     /**
+     * Registra um novo usuário na aplicação.
+     *
+     * @param user Contém os dados do usuário a ser registrado.
+     *             A validação é realizada usando as anotações de validação (@Valid) no objeto.
+     * @return Uma resposta HTTP contendo o status 201 (Created) e uma mensagem de sucesso.
+     *         Caso ocorra alguma falha na validação ou processamento, uma exceção será lançada.
+     */
+    @PostMapping("/register")
+    public ResponseEntity<HttpSuccessResponse> register(@RequestBody @Valid UserRequest user) {
+        userService.registerUser(user);
+
+        var httpResponse = new HttpSuccessResponse(HttpStatus.CREATED, "Cadastro efetuado com sucesso");
+        return ResponseEntity.status(HttpStatus.CREATED).body(httpResponse);
+    }
+
+    /**
      * Autentica o usuário e retorna um token JWT para acesso às rotas protegidas.
      * <p>
      * Este endpoint recebe as credenciais do usuário no corpo da requisição, valida as credenciais,
@@ -45,13 +61,6 @@ public class AuthenticationController {
         var token = authenticationService.login(authentication);
 
         return ResponseEntity.ok(token);
-    }
-
-    @PostMapping("/refresh-token")
-    public ResponseEntity<TokenResponse> refreshToken(@RequestBody @Valid TokenResponse refreshTokenRequest) {
-        var refreshToken = authenticationService.refreshToken(refreshTokenRequest.refreshToken());
-
-        return ResponseEntity.ok(refreshToken);
     }
 
     /**
@@ -71,19 +80,20 @@ public class AuthenticationController {
     }
 
     /**
-     * Registra um novo usuário na aplicação.
+     * Renova o token de acesso do usuário.
+     * <p>
+     * Este endpoint permite que um usuário obtenha um novo token de acesso utilizando um refresh token válido.
+     * Caso o refresh token seja válido, um novo token de acesso é gerado e retornado.
+     * Caso contrário, a requisição pode falhar com um erro de autenticação.
      *
-     * @param user Contém os dados do usuário a ser registrado.
-     *             A validação é realizada usando as anotações de validação (@Valid) no objeto.
-     * @return Uma resposta HTTP contendo o status 201 (Created) e uma mensagem de sucesso.
-     *         Caso ocorra alguma falha na validação ou processamento, uma exceção será lançada.
+     * @param refreshTokenRequest O corpo da requisição contendo o refresh token do usuário.
+     * @return Uma resposta HTTP 200 contendo o novo token de acesso, ou um erro caso o refresh token seja inválido.
      */
-    @PostMapping("/register")
-    public ResponseEntity<HttpSuccessResponse> register(@RequestBody @Valid UserRequest user) {
-        userService.registerUser(user);
+    @PostMapping("/refresh-token")
+    public ResponseEntity<TokenResponse> refreshToken(@RequestBody @Valid TokenResponse refreshTokenRequest) {
+        var refreshToken = authenticationService.refreshToken(refreshTokenRequest.refreshToken());
 
-        var httpResponse = new HttpSuccessResponse(HttpStatus.CREATED, "Cadastro efetuado com sucesso");
-        return ResponseEntity.status(HttpStatus.CREATED).body(httpResponse);
+        return ResponseEntity.ok(refreshToken);
     }
 
     /**
