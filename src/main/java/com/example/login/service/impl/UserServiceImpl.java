@@ -42,11 +42,13 @@ public class UserServiceImpl implements UserService {
         newUser.setEmail(user.email());
         newUser.setPassword(passEncoder.encode(user.password()));
         newUser.setRole(role);
-        newUser.setEnabled(false);
+        newUser.setEnabled(user.isExperimental());
 
         userRepository.save(newUser);
 
-        emailService.sendRegisterEmail(user.email());
+        if (user.isExperimental()) {
+            emailService.sendRegisterEmail(user.email());
+        }
     }
 
     @Override
@@ -56,4 +58,5 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new BadRequestException("Usuário inexistente!"));
     }
+
 }
