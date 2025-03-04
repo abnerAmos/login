@@ -1,0 +1,301 @@
+{
+	"info": {
+		"_postman_id": "98a13c26-446e-4e35-9103-ebcb3a0edd01",
+		"name": "Login",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "23207839"
+	},
+	"item": [
+		{
+			"name": "login Copy",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"email\": \"abner.fsouza@gmail.com\",\r\n    \"password\": \"18127301Aa@.\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/auth/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "refresh_token Copy",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJyZWZyZXNoVG9rZW4iLCJzdWIiOiJhYm5lci5mc291emExQGdtYWlsLmNvbSIsImV4cCI6MTczOTIwNzA4MH0.dKGrPGoxM7UB2QKyrnj0ErYr7pOXOhqu93w-SGVd5eU\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/auth/refresh-token",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"auth",
+						"refresh-token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "logout Copy",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhY2Nlc3NUb2tlbiIsInN1YiI6ImFibmVyLmZzb3V6YTFAZ21haWwuY29tIiwiZXhwIjoxNzM5Mjk2NjUyfQ.hQJ--F6DTAib1kWYQ7aON_ZSrxWIBwP1uBLvEjCqO28",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/auth/logout",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"auth",
+						"logout"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "user_register Copy",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"isExperimental\": true,\r\n    \"username\": \"Abner Amos Souza\",\r\n    \"password\": \"18127301Aa@.\",\r\n    \"role\": \"ADMIN\",\r\n    \"email\": \"abner.fsouza@gmail.com\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/auth/register",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"auth",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "validate_code Copy",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/auth/validate-code?email=abner.fsouza1@gmail.com&code=EfJ6I6",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"auth",
+						"validate-code"
+					],
+					"query": [
+						{
+							"key": "email",
+							"value": "abner.fsouza1@gmail.com"
+						},
+						{
+							"key": "code",
+							"value": "EfJ6I6"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "refresh_validation_code Copy",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/auth/refresh-code?email=abner.fsouza1@gmail.com",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"auth",
+						"refresh-code"
+					],
+					"query": [
+						{
+							"key": "email",
+							"value": "abner.fsouza1@gmail.com"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "find_user Copy",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhY2Nlc3NUb2tlbiIsInN1YiI6ImFibmVyLmZzb3V6YTFAZ21haWwuY29tIiwiZXhwIjoxNzM5Mjk2ODQ5fQ.4PwgHhYQWoC2FWZJ4r42J5B_A9ny0q_PcG4Dx3VnGRA",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/view/basic",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"view",
+						"basic"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "forgot-password Copy",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/auth/forgot-password?email=abner.fsouza1@gmail.com",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"auth",
+						"forgot-password"
+					],
+					"query": [
+						{
+							"key": "email",
+							"value": "abner.fsouza1@gmail.com"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "reset-password Copy",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"code\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJNw7NkdWxvIGRlIExvZ2luIiwic3ViIjoiYWJuZXIuZnNvdXphMUBnbWFpbC5jb20iLCJleHAiOjE3MzcwODU2Mzh9.hiGEGcVZUrk_B3Mo5hpdt85NJqXeJMJjsT4aZMPUeAAFpHkXH\",\r\n    \"password\": \"Seph!!r0t\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/auth/reset-password",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"auth",
+						"reset-password"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
