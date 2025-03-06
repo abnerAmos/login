@@ -6,6 +6,6 @@ import com.fasterxml.jackson.annotation.JsonView;
 
 @JsonView(Views.Basic.class)
 public record TokenResponse(
-        @Sensitive String token,
+        @Sensitive String accessToken,
         @Sensitive String refreshToken) {
 }
