@@ -46,7 +46,7 @@ public class UserServiceImpl implements UserService {
 
         userRepository.save(newUser);
 
-        if (user.isExperimental()) {
+        if (!user.isExperimental()) {
             emailService.sendRegisterEmail(user.email());
         }
     }
