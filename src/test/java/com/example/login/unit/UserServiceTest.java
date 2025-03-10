@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import static com.example.login.factory.UserFactory.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -33,11 +34,6 @@ public class UserServiceTest {
 
     @InjectMocks
     private UserServiceImpl userService;
-
-    public static final String USERNAME = "Fulano de Tal";
-    public static final String EMAIL = "fulano@email.com";
-    public static final String PASS = "Seph!r0t";
-    public static final String ENCODE_PASS = "1!2@3#4$_";
 
     @Test
     @DisplayName("Deve registrar um usuário com sucesso")
