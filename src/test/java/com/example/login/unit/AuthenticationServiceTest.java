@@ -11,11 +11,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import static com.example.login.factory.UserFactory.EMAIL;
 import static com.example.login.factory.UserFactory.ENCODE_PASS;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,5 +38,14 @@ public class AuthenticationServiceTest {
         assertNotNull(userDetails);
         assertEquals(EMAIL, userDetails.getUsername());
         assertEquals(ENCODE_PASS, userDetails.getPassword());
+    }
+
+    @Test
+    @DisplayName("Deve lançar excessão ao tentar carregar usuário")
+    public void testLoadUserByUsername_Error() {
+        User user = UserFactory.createUser(1L);
+        when(userRepository.findByEmail(EMAIL)).thenReturn(null);
+
+        assertThrows(UsernameNotFoundException.class, () -> userDetailsService.loadUserByUsername(EMAIL));
     }
 }
